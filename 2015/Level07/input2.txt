@@ -1,0 +1,3 @@
+0 -> c
+t OR 5 -> u
+c LSHIFT 1 -> t
