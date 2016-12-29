@@ -1,1 +1,3 @@
-# Advent of Code 2015-2016
+## Advent of Code 2015-2016
+
+Solutions written in **C++**.
