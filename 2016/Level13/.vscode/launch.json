@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "The Challenge",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/Debug/Level13.exe",
+            "args": ["-f", "1358", "-x",  "1", "-y", "1", "-w", "31", "-z", "39", "-l", "256", "-m", "g"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            // "preLaunchTask": "Win32Debug",
+            "name": "Example",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/Debug/Level13.exe",
+            "args": ["-f", "10", "-x",  "1", "-y", "1", "-w", "7", "-z", "4", "-m", "g"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": true
+        }
+    ]
+}
