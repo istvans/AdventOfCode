@@ -57,7 +57,10 @@ What is the first value written that is larger than your puzzle input?
 
 Your puzzle input is still 361527.
 """
+import argparse
+from enum import Enum
 
+# Part 1
 
 def calc_steps(square):
     """
@@ -155,10 +158,135 @@ def calc_steps(square):
     return gate1 - square + layer
 
 
-def main():
-    square = 361527
-    print(square,"->", calc_steps(square))
+# Part 2
+# 64 63 62 61 60 59 58 57 56
+# 65 36 35 34 33 32 31 30 55
+# 66 37 16 15 14 13 12 29 54
+# 67 38 17 4  3  2  11 28 53
+# 68 39 18 5  0  1  10 27 52
+# 69 40 19 6  7  8  9  26 51
+# 70 41 20 21 22 23 24 25 50
+# 71 42 43 44 45 46 47 48 49
+# 72 73 74 75 76 77 78 79 80 81
+#
+# 0 1 2 4 6 9 12 16 20 25 30 36 42 49 56 64 72 81 90
+#  1 1 2 2 3 3  4  4  5  5  6  6  7  7  8  8  9  9
+
+class Answer:
+    class Direction(Enum):
+        RIGHT = (1, 0)
+        RIGHT_UP = (1, 1)
+        RIGHT_DOWN = (1, -1)
+        LEFT = (-1, 0)
+        LEFT_UP = (-1, 1)
+        LEFT_DOWN = (-1, -1)
+        UP = (0, 1)
+        DOWN = (0, -1)
+
+    class Pos:
+        def __init__(self, x=0, y=0):
+            self.x = x
+            self.y = y
+
+        def __hash__(self):
+            return hash((self.x, self.y))
+
+        def __eq__(self, other):
+            return (self.x, self.y) == (other.x, other.y)
+
+        def __ne__(self, other):
+            return not(self == other)
+
+        def __str__(self):
+            return "[{}, {}]".format(self.x, self.y)
+
+        def move(self, direction):
+            self.x += direction.value[0]
+            self.y += direction.value[1]
+
+        def simove(self, direction):
+            copy = Answer.Pos(self.x, self.y)
+            copy.move(direction)
+            return copy
+
+    class Turn:
+        def __init__(self):
+            self.__step_id = 0
+            self.__turn_id = 0
+            self.__turn_distance = 0
+            self.__incr = True
+
+        def now(self):
+            turn = False
+            if self.__step_id == self.__turn_id:
+                turn = True
+                if self.__incr:
+                    self.__turn_distance += 1
+                    self.__incr = False
+                else:
+                    self.__incr = True
+                self.__turn_id = self.__step_id + self.__turn_distance
+            self.__step_id += 1
+            return turn
+
+        def __str__(self):
+            return "[step:{}, turn:{}, dist:{}, incr:{}]".format(
+                    self.__step_id, self.__turn_id,
+                    self.__turn_distance, self.__incr)
+
+    def __init__(self):
+        self.__dir = Answer.Direction.DOWN
+        self.__turn = Answer.Turn()
+
+    def __neighbour_sum(self, pos):
+        s = 0
+        for d in Answer.Direction:
+            p = pos.simove(d)
+            if p in self.__map:
+                s += self.__map[p]
+        return s
+
+    def __next_dir(self):
+        if self.__dir == Answer.Direction.RIGHT:
+            self.__dir = Answer.Direction.UP
+        elif self.__dir == Answer.Direction.UP:
+            self.__dir = Answer.Direction.LEFT
+        elif self.__dir == Answer.Direction.LEFT:
+            self.__dir = Answer.Direction.DOWN
+        elif self.__dir == Answer.Direction.DOWN:
+            self.__dir = Answer.Direction.RIGHT
+
+    def __next_pos(self, pos):
+        if self.__turn.now():
+            self.__next_dir()
+        return pos.simove(self.__dir)
+
+    def solve(self, puzzle_input):
+        pos = Answer.Pos(x=0, y=0)
+        self.__map = { pos : 1 }
+        print(self.__map.keys())
+        while self.__map[pos] <= puzzle_input:
+            print(pos, self.__map[pos], self.__turn)
+            pos = self.__next_pos(pos)
+            self.__map[pos] = self.__neighbour_sum(pos)
+        print("What is the first value written that "
+              "is larger than your puzzle input ({})? {}".format(puzzle_input
+                  , self.__map[pos]))
+        print(pos, self.__map[pos], self.__turn)
+
+
+def main(args):
+    puzzle_input = 361527
+    if args.part == '1':
+        print(puzzle_input,"->", calc_steps(puzzle_input))
+    else:
+        Answer().solve(puzzle_input)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--part", help="part 1 or 2", choices=['1', '2'],
+                        default='1')
+    args = parser.parse_args()
+    main(args)
+
