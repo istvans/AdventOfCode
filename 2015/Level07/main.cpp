@@ -37,23 +37,26 @@ x: 123
 y: 456
 In little Bobby's kit's instructions booklet (provided as your puzzle input), what signal is ultimately provided to wire a?
 */
+#include "macros.h"
 
-#include <iostream>
-#include <fstream>
-
-#include <regex>
-#include <chrono>
-#include <unordered_map>
-#include <vector>
-#include <vector>
-#include <string>
-#include <utility>
-#include <functional>
-#include <memory>
-
+CLANG_DIAG_IGNORE_BOOST_WARNINGS()
+#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
-#include <boost/lexical_cast.hpp>
+CLANG_DIAG_POP()
+
+#include <chrono>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <regex>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+#include <vector>
+
 
 inline void wait(void)
 {
@@ -87,7 +90,7 @@ struct Wire
     Wire(const std::string& target_) : _target{target_}
     {}
     Wire(const std::string& target_, Op::source_type source_)
-        : _target{target_}, _source{source_}
+        : _source{source_}, _target{target_}
     {}
     ~Wire(void)
     {}

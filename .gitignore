@@ -1,7 +1,8 @@
-**/Debug/
-**/Release/
-**/gen/
 **/.idea/
-**/target/
 **/__pycache__/
+**/bin/
+**/Debug/
+**/gen/
+**/Release/
+**/target/
 *.stackdump
