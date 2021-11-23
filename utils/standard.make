@@ -56,6 +56,7 @@ endif
 ifeq (${COMPILER}, clang)
     COMPILER_CMD := clang++ -std=${CPP_VERSION} -Weverything -Werror \
     -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-overlength-strings \
+    -Wno-padded \
     -I${UTILS_DIR} ${OPTIMISATION} ${COMPILER_FLAGS}
     BUILD := ${COMPILER_CMD} ${INCLUDE_BOOST} ${SOURCE} -o ${BINARY}
 else ifeq (${COMPILER}, gcc)

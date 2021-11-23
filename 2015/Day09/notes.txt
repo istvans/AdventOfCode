@@ -1,0 +1,530 @@
+This is NOT a Minimum Spanning Tree (MST) Problem:
+The minimum-spanning-tree problem is defined as follows:
+find an acyclic subset T of E that connects all of the vertices in the graph and
+whose total weight is minimized, where the total weight is given by
+
+w(T) = sum of w(u,v) over all (u,v) in T, where w(u,v) is the weight on the edge (u,v)
+
+T is called the spanning tree.
+
+Why not?
+This problem does not specify a constraint that we have here: we can only visit each
+vertices once.
+--------------------------------------------------------------------------------
+
+This is NOT exactly a Travelling Salesman Problem (TSP):
+"Given a list of cities and the distances between each pair of cities, what is
+ the shortest possible route that visits each city exactly once and returns to the
+ origin city."
+
+Why not?
+The TSP wants to return to the origin city, but we don't need to.
+--------------------------------------------------------------------------------
+Calculate the shortest distance between every pair of vertices and choose
+the shortest one.
+
+Why not?
+Just because you have the shortest distance between arbitrary two vertices of the
+graph it does not ensure that any of these paths touch all of the vertices once.
+--------------------------------------------------------------------------------
+In the mathematical field of graph theory, a Hamiltonian path (or traceable path)
+is a path in an undirected or directed graph that visits each vertex exactly once.
+
+So what we need here is the shortest Hamiltonian path.
+********************************************************************************
+This is a Shortest Hamiltonian Path problem, which is NP-complete.
+********************************************************************************
+The good news is that in the input we have a small, sparse graph.
+https://cstheory.stackexchange.com/questions/39694/how-to-solve-the-shortest-hamiltonian-path-problem-on-sparse-graphs?newreg=c1fc85e722bf4e48b2735ca6c2aa761e
+To solve this we need to
+1) find every Hamiltonian Path in the graph
+2) choose the shortest one
+
+How can we find a Hamilton Path in an undirected graph?
+
+How can we know that another Hamilton Path is not the same as one that we have
+already found?
+A different Hamilton Path lists the vertices in a different order. We can compare
+the found paths by iterating through their vertices. We can stop at the first
+difference confirming that the found path is a different one.
+
+
+Minimal Spanning Tree (MST):
+           Straylight     -14-   Arbre -14- Tristram -4- Norrath -8- Snowdin
+Tambi -22- AlphaCentauri  -46-
+Faerun -3-
+
+Faerun -> AlphaCentauri = 3
+Tristram -> Norrath = 4
+Norrath -> Snowdin = 8
+Tristram -> Arbre = 14
+Straylight -> Arbre = 14
+Tambi -> AlphaCentauri = 22
+AlphaCentauri -> Arbre = 46
+
+
+Faerun -3- AlphaCentauri -22- Tambi -65- Straylight -14- Arbre -14- Tristram -4- Norrath -8- Snowdin
+130 -> too high
+
+
+
+Faerun to Tristram = 65
+Faerun to Tambi = 129
+Faerun to Norrath = 144
+Faerun to Snowdin = 71
+Faerun to Straylight = 137
+Faerun to AlphaCentauri = 3
+Faerun to Arbre = 149
+Tristram to Tambi = 63
+Tristram to Norrath = 4
+Tristram to Snowdin = 105
+Tristram to Straylight = 125
+Tristram to AlphaCentauri = 55
+Tristram to Arbre = 14
+Tambi to Norrath = 68
+Tambi to Snowdin = 52
+Tambi to Straylight = 65
+Tambi to AlphaCentauri = 22
+Tambi to Arbre = 143
+Norrath to Snowdin = 8
+Norrath to Straylight = 23
+Norrath to AlphaCentauri = 136
+Norrath to Arbre = 115
+Snowdin to Straylight = 101
+Snowdin to AlphaCentauri = 84
+Snowdin to Arbre = 96
+Straylight to AlphaCentauri = 107
+Straylight to Arbre = 14
+AlphaCentauri to Arbre = 46
+
+
+vertices:
+0 Faerun
+1 Tristram
+2 Tambi
+3 Norrath
+4 Snowdin
+5 Straylight
+6 AlphaCentauri
+7 Arbre
+---------------
+8
+
+
+Faerun to Tristram to Tambi to Norrath to Snowdin to Straylight to AlphaCentauri to Arbre
+
+
+iterate through each vertex
+iterate through each vertex that can be accessed from this vertex
+recursively access each vertex that can be accessed from these connected vertices
+and so on
+we should only visit such vertices that we haven't visited yet
+BUT when we backtrack, we need to forget that we visited those vertices in this
+path from which we have backtracked from.
+does this mean that we need to keep two colouring?
+so how would this traversal really work on the input.txt?
+
+let's say we start from Faerun
+Quest:
+we want to find every path from Faerun that visits every vertex once and only once.
+
+so to do that, we need to track which vertices we have already visited i.e. the paths.
+we also need to try every possible edge from each vertex as it might lead us to
+the final solution. except, if with that edge we'd have a path which has a greater
+or equal length of the shortest Hamiltonian path we've found so far. Of course,
+if we haven't found any yet, we just carry on. so we need a visited edges maybe?
+
+
+hamiltonian_paths:
+paths:
+list of vectors - to make it efficient to remove elements and
+add new elements to the end of the paths
+we can preallocate (reserver()) the vectors to the number of vertices, since we
+won't store more vertices in them (that's the Hamiltonian path length)
+edges:
+
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun
+
+step 1: find the reachable vertices
+Faerun to Tristram = 65
+Faerun to Tambi = 129
+Faerun to Norrath = 144
+Faerun to Snowdin = 71
+Faerun to Straylight = 137
+Faerun to AlphaCentauri = 3
+Faerun to Arbre = 149
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram | 65
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+
+step 2: continue building the first path until it is either becomes a Hamiltonian path, or it can't become such
+
+0 Faerun - Tristram | 65
+
+
+Faerun to Tristram = 65   X (Faerun is on this path)
+
+Tristram to Tambi = 63
+Tristram to Norrath = 4
+Tristram to Snowdin = 105
+Tristram to Straylight = 125
+Tristram to AlphaCentauri = 55
+Tristram to Arbre = 14
+
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram - Tambi | 65 + 63 *updated*
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+*new*
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+
+step 3: continue building the first path until it is either becomes a Hamiltonian path, or it can't become such
+
+0 Faerun - Tristram - Tambi | 65 + 63
+
+==<<<Tambi>>>==
+Faerun to Tambi = 129     X
+Tristram to Tambi = 63    X
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram - Tambi - Norrath | 65 + 63 + 68  *updated*
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+*new*
+12 Faerun - Tristram - Tambi - Snowdin | 65 + 63 + 52
+13 Faerun - Tristram - Tambi - Straylight | 65 + 63 + 65
+14 Faerun - Tristram - Tambi - AlphaCentauri | 65 + 63 + 22
+15 Faerun - Tristram - Tambi - Arbre | 65 + 63 + 143
+
+step 4: continue building the <active path> until it is either becomes a Hamiltonian path, or it can't become such
+
+0 Faerun - Tristram - Tambi - Norrath | 65 + 63 + 68
+
+==<<<Norrath>>>==
+excluded edges (contain already visited vertices):
+Faerun to Norrath = 144
+Tristram to Norrath = 4
+Tambi to Norrath = 68
+
+valid new edges:
+Norrath to Snowdin = 8
+Norrath to Straylight = 23
+Norrath to AlphaCentauri = 136
+Norrath to Arbre = 115
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram - Tambi - Norrath - Snowdin | 65 + 63 + 68 + 8
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+12 Faerun - Tristram - Tambi - Snowdin | 65 + 63 + 52
+13 Faerun - Tristram - Tambi - Straylight | 65 + 63 + 65
+14 Faerun - Tristram - Tambi - AlphaCentauri | 65 + 63 + 22
+15 Faerun - Tristram - Tambi - Arbre | 65 + 63 + 143
+*new*
+16 Faerun - Tristram - Tambi - Norrath - Straylight | 65 + 63 + 68 + 23
+17 Faerun - Tristram - Tambi - Norrath - AlphaCentauri | 65 + 63 + 68 + 136
+18 Faerun - Tristram - Tambi - Norrath - Arbre | 65 + 63 + 68 + 115
+
+step 5: continue building the <active path> until it is either becomes a Hamiltonian path, or it can't become such
+
+0 Faerun - Tristram - Tambi - Norrath - Snowdin | 65 + 63 + 68 + 8
+
+==<<<Snowdin>>>==
+excluded edges (contain already visited vertices):
+Faerun to Snowdin = 71
+Tristram to Snowdin = 105
+Tambi to Snowdin = 52
+Norrath to Snowdin = 8
+
+valid new edges:
+Snowdin to Straylight = 101
+Snowdin to AlphaCentauri = 84
+Snowdin to Arbre = 96
+
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight | 65 + 63 + 68 + 8 + 101 *updated*
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+12 Faerun - Tristram - Tambi - Snowdin | 65 + 63 + 52
+13 Faerun - Tristram - Tambi - Straylight | 65 + 63 + 65
+14 Faerun - Tristram - Tambi - AlphaCentauri | 65 + 63 + 22
+15 Faerun - Tristram - Tambi - Arbre | 65 + 63 + 143
+16 Faerun - Tristram - Tambi - Norrath - Straylight | 65 + 63 + 68 + 23
+17 Faerun - Tristram - Tambi - Norrath - AlphaCentauri | 65 + 63 + 68 + 136
+18 Faerun - Tristram - Tambi - Norrath - Arbre | 65 + 63 + 68 + 115
+*new*
+19 Faerun - Tristram - Tambi - Norrath - Snowdin - AlphaCentauri | 65 + 63 + 68 + 8 + 84
+20 Faerun - Tristram - Tambi - Norrath - Snowdin - Arbre | 65 + 63 + 68 + 8 + 96
+
+
+step 6: continue building the <active path> until it is either becomes a Hamiltonian path, or it can't become such
+
+
+0 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight | 65 + 63 + 68 + 8 + 101
+
+==<<<Straylight>>>==
+excluded edges (contain already visited vertices):
+Faerun to Straylight = 137
+Tristram to Straylight = 125
+Tambi to Straylight = 65
+Norrath to Straylight = 23
+Snowdin to Straylight = 101
+
+valid new edges:
+Straylight to AlphaCentauri = 107
+Straylight to Arbre = 14
+
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - AlphaCentauri | 65 + 63 + 68 + 8 + 101 + 107 *updated*
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+12 Faerun - Tristram - Tambi - Snowdin | 65 + 63 + 52
+13 Faerun - Tristram - Tambi - Straylight | 65 + 63 + 65
+14 Faerun - Tristram - Tambi - AlphaCentauri | 65 + 63 + 22
+15 Faerun - Tristram - Tambi - Arbre | 65 + 63 + 143
+16 Faerun - Tristram - Tambi - Norrath - Straylight | 65 + 63 + 68 + 23
+17 Faerun - Tristram - Tambi - Norrath - AlphaCentauri | 65 + 63 + 68 + 136
+18 Faerun - Tristram - Tambi - Norrath - Arbre | 65 + 63 + 68 + 115
+19 Faerun - Tristram - Tambi - Norrath - Snowdin - AlphaCentauri | 65 + 63 + 68 + 8 + 84
+20 Faerun - Tristram - Tambi - Norrath - Snowdin - Arbre | 65 + 63 + 68 + 8 + 96
+*new*
+21 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - Arbre | 65 + 63 + 68 + 8 + 101 + 14
+
+step 7: continue building the <active path> until it is either becomes a Hamiltonian path, or it can't become such
+
+0 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - AlphaCentauri
+
+==<<<AlphaCentauri>>>==
+excluded edges (contain already visited vertices):
+Faerun to AlphaCentauri = 3
+Tristram to AlphaCentauri = 55
+Tambi to AlphaCentauri = 22
+Norrath to AlphaCentauri = 136
+Snowdin to AlphaCentauri = 84
+Straylight to AlphaCentauri = 107
+
+valid new edges:
+AlphaCentauri to Arbre = 46
+
+
+hamiltonian_paths:
+<none>
+paths:
+0 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - AlphaCentauri - Arbre | 65 + 63 + 68 + 8 + 101 + 107 + 46 *updated*
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+12 Faerun - Tristram - Tambi - Snowdin | 65 + 63 + 52
+13 Faerun - Tristram - Tambi - Straylight | 65 + 63 + 65
+14 Faerun - Tristram - Tambi - AlphaCentauri | 65 + 63 + 22
+15 Faerun - Tristram - Tambi - Arbre | 65 + 63 + 143
+16 Faerun - Tristram - Tambi - Norrath - Straylight | 65 + 63 + 68 + 23
+17 Faerun - Tristram - Tambi - Norrath - AlphaCentauri | 65 + 63 + 68 + 136
+18 Faerun - Tristram - Tambi - Norrath - Arbre | 65 + 63 + 68 + 115
+19 Faerun - Tristram - Tambi - Norrath - Snowdin - AlphaCentauri | 65 + 63 + 68 + 8 + 84
+20 Faerun - Tristram - Tambi - Norrath - Snowdin - Arbre | 65 + 63 + 68 + 8 + 96
+21 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - Arbre | 65 + 63 + 68 + 8 + 101 + 14
+
+step 8: continue building the <active path> until it is either becomes a Hamiltonian path, or it can't become such
+
+if len(active+_path) == num_vertices:
+    -> compare the path's distance with the shortest hamiltonian distance
+        if it's smaller, update the shortest Hamiltonian distance
+        if it's bigger - skip
+
+in either case, this path was evaluated. we could keep a record of the
+evaluated paths, but I don't see why yet. so the simplest is to just remove this
+path from the list
+
+65 + 63 + 68 + 8 + 101 + 107 + 46 = 458
+
+do we need to store the whole path, or is it enough to just store a number?
+store the whole path just for debugging purposes?
+
+
+shortest_hamiltonian_path:
+Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - AlphaCentauri - Arbre | 458
+paths:
+*deleted*
+1 Faerun - Tambi | 129
+2 Faerun - Norrath | 144
+3 Faerun - Snowdin | 71
+4 Faerun - Straylight | 137
+5 Faerun - AlphaCentauri | 3
+6 Faerun - Arbre | 149
+7 Faerun - Tristram - Norrath | 65 + 4
+8 Faerun - Tristram - Snowdin | 65 + 105
+9 Faerun - Tristram - Straylight | 65 + 125
+10 Faerun - Tristram - AlphaCentauri | 65 + 55
+11 Faerun - Tristram - Arbre | 65 + 14
+12 Faerun - Tristram - Tambi - Snowdin | 65 + 63 + 52
+13 Faerun - Tristram - Tambi - Straylight | 65 + 63 + 65
+14 Faerun - Tristram - Tambi - AlphaCentauri | 65 + 63 + 22
+15 Faerun - Tristram - Tambi - Arbre | 65 + 63 + 143
+16 Faerun - Tristram - Tambi - Norrath - Straylight | 65 + 63 + 68 + 23
+17 Faerun - Tristram - Tambi - Norrath - AlphaCentauri | 65 + 63 + 68 + 136
+18 Faerun - Tristram - Tambi - Norrath - Arbre | 65 + 63 + 68 + 115
+19 Faerun - Tristram - Tambi - Norrath - Snowdin - AlphaCentauri | 65 + 63 + 68 + 8 + 84
+20 Faerun - Tristram - Tambi - Norrath - Snowdin - Arbre | 65 + 63 + 68 + 8 + 96
+21 Faerun - Tristram - Tambi - Norrath - Snowdin - Straylight - Arbre | 65 + 63 + 68 + 8 + 101 + 14
+
+so we can basically iterate until the list has elements
+
+in parallel execution:
+- each initial path could be evaluated on separate threads
+e.g. we would have 6 threads each with its own start path:
+thread 0: Faerun - Tristram | 65
+thread 1: Faerun - Tambi | 129
+thread 2: Faerun - Norrath | 144
+thread 3: Faerun - Snowdin | 71
+thread 4: Faerun - Straylight | 137
+thread 5: Faerun - AlphaCentauri | 3
+thread 6: Faerun - Arbre | 149
+
+the threads' return value would be the shortest Hamiltonian path they have found
+
+we could actually do this in configurable number of layers
+like Faerun is just the first start vertex
+we could start a thread from each vertex
+and then start a thread for each new vertex reachable from that vertex
+etc.
+
+advantage:
+ relatively simple
+
+disadvantage:
+ we can end up with too few or too many threads (it really depends on the graph)
+
+--- OR ---
+
+- we can use the single list and allow X worker threads to evaluate the top X paths
+they should go until they either find a Hamiltonian path, or realise that from this
+path prefix there is no Hamiltonian path
+while evaluating they would capture all the found new, possible paths
+
+so the return value would be:
+- the found Hamiltonian path length (a negative value could denote that there wasn't a Hamiltonian path)
+- the list of new path prefixes to be evaluated later on
+
+then the algo would delete the top X paths, as they were evaluated, append the new path prefixes
+from the threads in any order, then it would check which returned Hamiltonian path length is the smallest (excluding the negative one!!! maybe it should be std::optional?) and comparing that with the stored shortest, lastly it would run X threads again to evaluate the top X paths prefixes
+
+advantage:
+ completely configurable how many threads we want to run the solution on
+
+disadvantage:
+ looks a bit more complicated
+
+
+The main thing is that we can immediately stop processing a path any further if
+it becomes longer than the shortest Hamiltonian path that we stored, or if we can't
+reach all the vertices from it
+As the shortest Hamiltonian path gets shorter and shorter with each iteration
+this cut can happen earlier and earlier. So it looks like the algorithm will
+speed up.
+As it turned out we did not even need this optimisation since the input graph
+is fairly small. This would have prevented the algorithm to be able to find the
+longest Hamiltonian path to solve the second part of the puzzle.
+
+
+The pseudo code:
+graph = g
+num_vertices = n
+paths = [vertex_0, ..., vertex_n]
+shortest_hamiltonian_path = [MAX, <empty>]
+path_was_evaluated = false
+while not paths.empty():
+    active_path = paths.front()
+    if Hamiltonian_path_was_found:  # len(active_path) == num_vertices
+        if active_path.distance < shortest_hamiltonian_path.distance:
+            shortest_hamiltonian_path = active_path
+        path_was_evaluated = true
+    else:
+        new_paths = find_new_paths(active_path, graph)
+        if new_paths.empty():
+            path_was_evaluated = true
+        else:
+            active_path.push_back(new_paths.front())
+            new_paths.pop_front()
+            paths.push_back(new_paths)
+
+    if path_was_evaluated:
+        paths.pop_front()
+        path_was_evaluated = false
