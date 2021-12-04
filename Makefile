@@ -7,13 +7,13 @@ else
     $(error the YEAR is undefined)
 endif
 
-ifdef LEVEL
-    LEVEL_DIR = ${YEAR_DIR}/Level${LEVEL}
+ifdef DAY
+    DAY_DIR = ${YEAR_DIR}/Day${DAY}
 else
-    $(error the LEVEL is undefined)
+    $(error the DAY is undefined)
 endif
 
-.PHONY: $(LEVEL_DIR)
+.PHONY: $(DAY_DIR)
 
-$(LEVEL_DIR):
+$(DAY_DIR):
 	$(MAKE) -C $@
