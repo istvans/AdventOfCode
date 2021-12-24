@@ -24,3 +24,5 @@
 
 #define CLANG_DIAG_POP() \
     _Pragma("clang diagnostic pop")
+
+#define NUM_ELEMENTS_OF_ARRAY(arr_) (sizeof((arr_))/sizeof((arr_)[0]))
