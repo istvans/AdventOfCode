@@ -6,3 +6,4 @@
 **/Release/
 **/target/
 *.stackdump
+*.sublime-workspace

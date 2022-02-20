@@ -1,0 +1,6 @@
+{
+    "settings":
+    {
+        "SublimeLinter.linters.clang++.args": "-std=c++20 -Wall -Iutils -fsyntax-only -fno-caret-diagnostics"
+    }
+}
