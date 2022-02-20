@@ -1,0 +1,202 @@
+Alice would gain 54 happiness units by sitting next to Bob.
+Alice would lose 79 happiness units by sitting next to Carol.
+Alice would lose 2 happiness units by sitting next to David.
+Bob would gain 83 happiness units by sitting next to Alice.
+Bob would lose 7 happiness units by sitting next to Carol.
+Bob would lose 63 happiness units by sitting next to David.
+Carol would lose 62 happiness units by sitting next to Alice.
+Carol would gain 60 happiness units by sitting next to Bob.
+Carol would gain 55 happiness units by sitting next to David.
+David would gain 46 happiness units by sitting next to Alice.
+David would lose 7 happiness units by sitting next to Bob.
+David would gain 41 happiness units by sitting next to Carol.
+
+Alice = a
+Bob = b
+Carol = c
+David = d
+
+
+a + b = 54
+b + a = 83
+----------
+a + b = 137
+
+a + c = -79
+c + a = -62
+-----------
+a + c = -141
+
+a + d = -2
+d + a = 46
+-----------
+a + d = 44
+
+b + c = -7
+c + b = 60
+----------
+b + c = 53
+
+b + d = 63
+d + b = -7
+----------
+b + d = 56
+
+c + d = 55
+d + c = 41
+----------
+c + d = 96
+
+
+a + b = 137
+c + d = 96
+b + d = 56
+b + c = 53
+a + d = 44
+a + c = -141
+
+
+> a + b = 137
+> c + d = 96
+> b + d = 56
+b + c = 53
+a + d = 44
+> a + c = -141
+---------------
+148
+    A
+B       C
+    D
+
+a + b = 137
+> c + d = 96
+> b + d = 56
+- b + c = 53
+a + d = 44
+a + c = -141
+
+
+    D
+C      B
+
+
+
+
+> a + b = 137
+> c + d = 96
+b + d = 56
+> b + c = 53
+> a + d = 44
+!! a + c = -141
+---------------
+a + b + c + d = 330
+
+   B
+A     C
+   D
+
+Potential Solutions
+===================
+
+I. brute-force
+--------------
+1) find the pairs and calculate their total happiness gain/lost
+2) try every combination of the attendees and always update the max total change in happiness + the seating order
+if a better one found:
+let's say there are 5 guests. all the permutations we want looks like this:
+    A
+E      B
+  D  C
+    B
+E      A
+  D  C
+    B
+E      C
+  D  A
+    B
+E      C
+  A  D
+    A
+E      C
+  D  B
+    A
+E      C
+  D  B
+
+
+
+guests             permutations with at least one guest sitting next to at least one new guest
+A B C              1
+A B C D            3
+A B C D E          6?
+A B C D E F        10?
+A B C D E F G      15?
+
+
+B A C D   nexts: A: (B, C) B: (A, D) C: (A, D) D: (B, C)
+A B C D   nexts: A: (B, D) B: (A, C) C: (B, D) D: (A, C)
+B C A D   nexts: A: (C, D) B: (C, D) C: (A, B) D: (A, B)
+
+
+A B C D E nexts: A: (B, E) B: (A, C) C: (B, D) D: (C, E), E: (A, D)
+B A C D E nexts: A: (B, C) B: (A, E) C: (A, D) D: (C, E), E: (B, D)
+B C A D E nexts: A: (C, D) B: (C, E) C: (A, B) D: (A, E), E: (B, D)
+B C D A E nexts: A: (D, E) B: (C, E) C: (B, D) D: (C, A), E: (A, B)
+B A D C E nexts: A: (B, D) B: (A, E) C: (A, D) D: (C, E), E: (B, D)
+A C B D E nexts: A: (C, E) B: (C, D) C: (A, B) D: (B, E), E: (A, D)
+
+
+
+
+((n - 1)(n - 2)) / 2
+n = 3 => 1
+n = 4 => (3 * 2) / 2 = 3
+n = 5 => (4 * 3) / 2 = 6
+n = 6 => (5 * 4) / 2 = 10
+n = 7 => (6 * 5) / 2 = 15
+n = 8 => (7 * 6) / 2 = 21
+
+n!/(r!(n-r)!)
+3!/2!(3-2)! = 3
+4!/2!(4-2)! = 6
+5!/2!(5-2)! = 10
+6!/2!(6-2)! = 15
+7!/2!(7-2)! = 21
+8!/2!(8-2)! = 28
+
+So the question is how many different ways I can select 2 out of N while the order does not matter?
+combination?
+n! / r!(n-r)!
+
+So how can we generate the unique seatings?
+
+
+
+
+
+
+II. "optimised"
+---------------
+1) find the pairs and calculate their total happiness gain/lost
+2) put the pairs in decreasing order
+3) create an array of seats:
+_ _ _ _
+3) start with the most negative pair and sit them with one seat empty between them
+ like in an array
+a _ c _
+4) continue until you can sit negative pairs with people between them
+a _ c _
+5) try to put people next to each other starting from the best pair
+a b c _
+6) continue until everyone has a seat
+a b c d
+
+
+
+    A   G
+B          F
+
+C          E
+      D
+
+
