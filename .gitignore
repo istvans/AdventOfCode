@@ -1,9 +1,10 @@
 **/.idea/
+**/Debug/
+**/Release/
 **/__pycache__/
 **/bin/
-**/Debug/
 **/gen/
-**/Release/
 **/target/
 *.stackdump
 *.sublime-workspace
+tags*
