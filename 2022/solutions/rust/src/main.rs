@@ -1,13 +1,8 @@
-use clap::{Parser, ValueEnum};
+mod engine;
+mod puzzle;
+mod solver;
 
-/// Each puzzle has two parts.
-#[derive(Clone, Debug, ValueEnum)]
-enum Part {
-    /// The first part; solving it unlocks the second part.
-    First,
-    /// The final, second part.
-    Second,
-}
+use clap::Parser;
 
 /// Solve the selected day's puzzle.
 #[derive(Parser)]
@@ -23,4 +18,6 @@ struct Cli {
 fn main() {
     let args = Cli::parse();
     println!("{:?} part of day {}", args.part, args.day);
+    let mut solver = engine::Factory::new(args.day, args.part);
+    solver.what_is_this();
 }
