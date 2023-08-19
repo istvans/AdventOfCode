@@ -1,8 +1,10 @@
+use crate::error::AocError;
+
 use clap::ValueEnum;
 
 /// Each puzzle has two parts.
 #[derive(Clone, Debug, ValueEnum)]
-enum Part {
+pub enum Part {
     /// The first part; solving it unlocks the second part.
     First,
     /// The final, second part.

@@ -1,13 +1,18 @@
-mod solver {
-    struct Error;
+use crate::engine::Engine;
 
-    struct Solver<Engine> {
-        engine: Engine,
-    }
+struct Solver<E>
+where
+    E: Engine,
+{
+    engine: E,
+}
 
-    impl<Engine> Solver<Engine> {
-        fn solve(&self) -> Result<String, Error> {
-            self.engine.solve(self.engine.get_puzzle())
-        }
+impl<E> Solver<E>
+where
+    E: Engine,
+{
+    fn solve(&self) -> Result<E::Solution, E::Error> {
+        let puzzle = self.engine.get_puzzle()?;
+        self.engine.solve(puzzle)
     }
 }
