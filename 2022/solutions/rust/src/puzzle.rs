@@ -1,4 +1,4 @@
-use crate::error::AocError;
+use crate::error::{error, Error};
 
 use clap::ValueEnum;
 
@@ -11,12 +11,13 @@ pub enum Part {
     Second,
 }
 
+#[derive(Clone, Debug)]
 pub struct Day(u8);
 
 impl Day {
     pub fn new(day_number: u8) -> Result<Self, Error> {
         if day_number < 1 || day_number > 25 {
-            result = Error("{day__number} isn't an advent calendar day");
+            result = anyhow!("{day__number} isn't an advent calendar day");
         } else {
             result = Self(day_number);
         }

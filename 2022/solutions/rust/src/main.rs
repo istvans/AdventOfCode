@@ -3,6 +3,8 @@ mod error;
 mod puzzle;
 mod solver;
 
+use crate::puzzle::{Day, Part};
+
 use clap::Parser;
 
 /// Solve the selected day's puzzle.
@@ -18,6 +20,6 @@ struct Cli {
 
 fn main() {
     let args = Cli::parse();
-    println!("{:?} part of day {}", args.part, args.day);
+    println!("{:?} part of day {:?}", args.part, args.day);
     let mut solver = engine::new(args.day, args.part);
 }
