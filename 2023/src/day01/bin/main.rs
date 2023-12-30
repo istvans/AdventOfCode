@@ -1,13 +1,9 @@
 /// 2023 Day 1
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, BufRead};
+use std::io::BufRead;
 use std::path::Path;
 
-/// Return the file reader instance for the specified `path`.
-fn get_reader(path: &Path) -> io::BufReader<File> {
-    io::BufReader::new(File::open(path).unwrap())
-}
+use utils::get_reader;
 
 /// Return the answer to the first part of the puzzle.
 fn part01(path: &Path) -> u32 {

@@ -6,6 +6,10 @@ readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "utils"
+path = "src/utils.rs"
+
 [[bin]]
 name = "day01"
 path = "src/day01/bin/main.rs"
@@ -15,3 +19,4 @@ name = "day02"
 path = "src/day02/bin/main.rs"
 
 [dependencies]
+regex = "1.10.2"
