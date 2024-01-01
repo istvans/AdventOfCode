@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::io::BufRead;
 use std::path::Path;
 
-use utils::get_reader;
+use raoc_2023::get_reader;
 
 /// Return the answer to the first part of the puzzle.
 fn part01(path: &Path) -> u32 {

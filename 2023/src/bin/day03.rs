@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::path::Path;
 
-use utils::get_reader;
+use raoc_2023::get_reader;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Point {

@@ -5,7 +5,7 @@ use std::path::Path;
 
 use regex::Regex;
 
-use utils::get_reader;
+use raoc_2023::get_reader;
 
 #[derive(Debug, PartialEq, Eq)]
 struct CubeSet {
