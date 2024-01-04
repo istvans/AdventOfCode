@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::io::BufRead;
 use std::path::Path;
 
-use raoc_2023::get_reader;
+use raoc_2023::{get_reader, print_part01_header, print_part02_header};
 
 #[derive(PartialEq, Eq)]
 enum Mode {
@@ -152,7 +152,7 @@ fn part02(path: &Path) -> Number {
 fn main() {
     let path = Path::new("./inputs/day05");
 
-    println!("Part 1:\n========================================================");
+    print_part01_header();
     let answer = part01(&path);
     println!(
         "What is the lowest location number that corresponds to any of the initial \
@@ -160,7 +160,7 @@ fn main() {
         answer
     );
 
-    println!("\nPart 2:\n========================================================");
+    print_part02_header();
     println!(
         "WARNING This is a working, but suboptimal, MVP solution! \
          It takes several minutes to complete using a \
