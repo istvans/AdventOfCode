@@ -37,9 +37,10 @@ struct Hand {
 }
 
 impl Hand {
-    fn new(line: &String) -> Self {
+    fn new(line: &str) -> Self {
         let parts: Vec<&str> = line.split(' ').collect();
-        let cards: Vec<u8> = parts[0]
+
+        let cards: [u8; 5] = parts[0]
             .chars()
             .map(|c| match c {
                 'T' => 10u8,
@@ -49,14 +50,28 @@ impl Hand {
                 'A' => 14u8,
                 num => num.to_digit(10).unwrap() as u8,
             })
-            .collect();
-        let bid = parts[1].parse::<u32>().unwrap();
+            .collect::<Vec<u8>>()
+            .try_into()
+            .unwrap();
+
+        let bid = if parts.len() == 1 {
+            0 // if the bid isn't specified we just assume it's 0
+        } else {
+            match parts[1].parse::<u32>() {
+                Ok(bid) => bid,
+                Err(_) => 0,
+            }
+        };
+
         Self { cards, bid }
     }
 
     fn get_type(&self) -> Type {
         use Type::*;
-        FiveOfAKind
+        let mut count_of_card = HashMap::new();
+        for card in self.cards {
+            count_of_card.entry(&card).or_insert((card, 1))
+        }
     }
 }
 
@@ -84,6 +99,18 @@ impl Ord for Hand {
     }
 }
 
+#[test]
+fn test_hand_type() {
+    use Type::*;
+    assert_eq!(Hand::new("A2T63").get_type(), HighCard);
+    assert_eq!(Hand::new("4854J").get_type(), OnePair);
+    assert_eq!(Hand::new("ATT9A").get_type(), TwoPair);
+    assert_eq!(Hand::new("TJTT3").get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("666JJ").get_type(), FullHouse);
+    assert_eq!(Hand::new("AAAA4").get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQQQQ").get_type(), FiveOfAKind);
+}
+
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -102,11 +129,6 @@ fn part01(input: &Path) -> u32 {
 
 fn main() {
     let input = Path::new("./inputs/day07");
-
-    use Type::*;
-    let x = FourOfAKind;
-    let y = FiveOfAKind;
-    println!("{}", x < y);
 
     print_part01_header();
     let answer = part01(&input);
