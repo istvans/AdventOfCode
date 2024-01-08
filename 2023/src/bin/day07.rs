@@ -1,5 +1,6 @@
 /// 2023 Day 7
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::io::BufRead;
 use std::path::Path;
 
@@ -66,12 +67,21 @@ impl Hand {
         Self { cards, bid }
     }
 
-    fn get_type(&self) -> Type {
+    pub fn get_type(&self) -> Type {
         use Type::*;
         let mut count_of_card = HashMap::new();
-        for card in self.cards {
-            count_of_card.entry(&card).or_insert((card, 1))
+        for card in &self.cards {
+            count_of_card
+                .entry(card)
+                .and_modify(|c| c += 1)
+                .or_insert((card, 1));
         }
+
+        HighCard
+    }
+
+    pub fn get_bid(&self) -> u32 {
+        self.bid
     }
 }
 
@@ -100,7 +110,7 @@ impl Ord for Hand {
 }
 
 #[test]
-fn test_hand_type() {
+fn test_hand_type_kinds() {
     use Type::*;
     assert_eq!(Hand::new("A2T63").get_type(), HighCard);
     assert_eq!(Hand::new("4854J").get_type(), OnePair);
@@ -109,6 +119,14 @@ fn test_hand_type() {
     assert_eq!(Hand::new("666JJ").get_type(), FullHouse);
     assert_eq!(Hand::new("AAAA4").get_type(), FourOfAKind);
     assert_eq!(Hand::new("QQQQQ").get_type(), FiveOfAKind);
+}
+
+#[test]
+fn test_hand_type_and_bid() {
+    use Type::*;
+    let test = Hand::new("A2T63 1234");
+    assert_eq!(test.get_type(), HighCard);
+    assert_eq!(test.get_bid(), 1234u32);
 }
 
 impl PartialOrd for Hand {
