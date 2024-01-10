@@ -31,10 +31,12 @@ fn test_type_ordering() {
     assert_eq!(FullHouse, FullHouse);
 }
 
+type Number = u32;
+
 #[derive(Debug, PartialEq, Eq)]
 struct Hand {
     cards: [u8; 5],
-    bid: u32,
+    bid: Number,
 }
 
 impl Hand {
@@ -58,7 +60,7 @@ impl Hand {
         let bid = if parts.len() == 1 {
             0 // if the bid isn't specified we just assume it's 0
         } else {
-            match parts[1].parse::<u32>() {
+            match parts[1].parse::<Number>() {
                 Ok(bid) => bid,
                 Err(_) => 0,
             }
@@ -69,18 +71,40 @@ impl Hand {
 
     pub fn get_type(&self) -> Type {
         use Type::*;
-        let mut count_of_card = HashMap::new();
+        let mut count_of_cards: HashMap<u8, u8> = HashMap::new();
         for card in &self.cards {
-            count_of_card
-                .entry(card)
-                .and_modify(|c| c += 1)
-                .or_insert((card, 1));
+            count_of_cards
+                .entry(*card)
+                .and_modify(|c| *c += 1)
+                .or_insert(1);
         }
 
-        HighCard
+        let max_count = *(count_of_cards.values().max().unwrap());
+        let hand_type = if max_count == 5 {
+            FiveOfAKind
+        } else if max_count == 4 {
+            FourOfAKind
+        } else if max_count == 3 {
+            if count_of_cards.values().any(|&c| c == 2) {
+                FullHouse
+            } else {
+                ThreeOfAKind
+            }
+        } else {
+            let num_pairs = count_of_cards.values().filter(|&c| *c == 2).count();
+            if num_pairs == 2 {
+                TwoPair
+            } else if num_pairs == 1 {
+                OnePair
+            } else {
+                HighCard
+            }
+        };
+
+        hand_type
     }
 
-    pub fn get_bid(&self) -> u32 {
+    pub fn get_bid(&self) -> Number {
         self.bid
     }
 }
@@ -135,14 +159,24 @@ impl PartialOrd for Hand {
     }
 }
 
-fn part01(input: &Path) -> u32 {
+fn part01(input: &Path) -> Number {
     let reader = get_reader(&input);
+    let mut hands = Vec::new();
     for line in reader.lines() {
         let line = line.unwrap();
-        println!("{}", line);
-        break; // TODO Remove
+        let hand = Hand::new(&line);
+        hands.push(hand);
     }
-    0 // TODO implement
+
+    hands.sort();
+
+    let total_winnings = hands
+        .iter()
+        .enumerate()
+        .map(|(c, h)| ((c + 1) as Number) * h.get_bid())
+        .sum();
+
+    total_winnings
 }
 
 fn main() {
