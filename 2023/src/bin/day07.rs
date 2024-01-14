@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::io::BufRead;
 use std::path::Path;
 
-use raoc_2023::{get_reader, print_part01_header};
+use raoc_2023::{get_reader, print_part01_header, print_part02_header};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Type {
@@ -201,6 +201,10 @@ fn part01(input: &Path) -> Number {
     total_winnings
 }
 
+fn part02(_input: &Path) -> Number {
+    0 // TODO implement me
+}
+
 fn main() {
     let input = Path::new("./inputs/day07");
 
@@ -208,6 +212,14 @@ fn main() {
     let answer = part01(&input);
     println!(
         "Find the rank of every hand in your set. What are the total winnings? {}",
+        answer
+    );
+
+    print_part02_header();
+    let answer = part02(&input);
+    println!(
+        "Using the new joker rule, find the rank of every hand in your set. \
+         What are the new total winnings? {}",
         answer
     );
 }
