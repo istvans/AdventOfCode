@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::io::BufRead;
 use std::path::Path;
 
-use raoc_2023::{get_reader, print_part01_header, print_part02_header};
+use raoc_2023::{get_reader, print_part01_header};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Type {
@@ -120,6 +120,7 @@ impl Ord for Hand {
                     continue;
                 } else {
                     o = Some(c1.cmp(&c2));
+                    break;
                 }
             }
             match o {
@@ -157,6 +158,27 @@ impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+#[test]
+fn test_sorting() {
+    let mut hands = vec![
+        Hand::new("32T3K"),
+        Hand::new("T55J5"),
+        Hand::new("KK677"),
+        Hand::new("KTJJT"),
+        Hand::new("QQQJA"),
+    ];
+    hands.sort();
+    let expected_order = vec![
+        Hand::new("32T3K"),
+        Hand::new("KTJJT"),
+        Hand::new("KK677"),
+        Hand::new("T55J5"),
+        Hand::new("QQQJA"),
+    ];
+
+    assert_eq!(hands, expected_order);
 }
 
 fn part01(input: &Path) -> Number {
