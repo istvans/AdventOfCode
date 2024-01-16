@@ -179,20 +179,21 @@ impl PartialOrd for Hand {
 
 #[test]
 fn test_sorting_part01() {
+    let mode = Mode::Part01;
     let mut hands = vec![
-        Hand::new("32T3K"),
-        Hand::new("T55J5"),
-        Hand::new("KK677"),
-        Hand::new("KTJJT"),
-        Hand::new("QQQJA"),
+        Hand::new("32T3K", mode),
+        Hand::new("T55J5", mode),
+        Hand::new("KK677", mode),
+        Hand::new("KTJJT", mode),
+        Hand::new("QQQJA", mode),
     ];
     hands.sort();
     let expected_order = vec![
-        Hand::new("32T3K"),
-        Hand::new("KTJJT"),
-        Hand::new("KK677"),
-        Hand::new("T55J5"),
-        Hand::new("QQQJA"),
+        Hand::new("32T3K", mode),
+        Hand::new("KTJJT", mode),
+        Hand::new("KK677", mode),
+        Hand::new("T55J5", mode),
+        Hand::new("QQQJA", mode),
     ];
 
     assert_eq!(hands, expected_order);
