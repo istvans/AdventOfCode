@@ -39,15 +39,30 @@ struct Hand {
     bid: Number,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Mode {
+    Part01,
+    Part02,
+}
+
 impl Hand {
-    fn new(line: &str) -> Self {
+    fn new(line: &str, mode: Mode) -> Self {
         let parts: Vec<&str> = line.split(' ').collect();
 
+        use Mode::*;
         let cards: [u8; 5] = parts[0]
             .chars()
             .map(|c| match c {
                 'T' => 10u8,
-                'J' => 11u8,
+                'J' => {
+                    if mode == Part01 {
+                        11u8
+                    } else if mode == Part02 {
+                        1u8
+                    } else {
+                        unreachable!("unexpected mode: {:?}!", mode);
+                    }
+                }
                 'Q' => 12u8,
                 'K' => 13u8,
                 'A' => 14u8,
@@ -135,21 +150,23 @@ impl Ord for Hand {
 }
 
 #[test]
-fn test_hand_type_kinds() {
+fn test_hand_type_kinds_part01() {
+    let mode = Mode::Part01;
     use Type::*;
-    assert_eq!(Hand::new("A2T63").get_type(), HighCard);
-    assert_eq!(Hand::new("4854J").get_type(), OnePair);
-    assert_eq!(Hand::new("ATT9A").get_type(), TwoPair);
-    assert_eq!(Hand::new("TJTT3").get_type(), ThreeOfAKind);
-    assert_eq!(Hand::new("666JJ").get_type(), FullHouse);
-    assert_eq!(Hand::new("AAAA4").get_type(), FourOfAKind);
-    assert_eq!(Hand::new("QQQQQ").get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("A2T63", mode).get_type(), HighCard);
+    assert_eq!(Hand::new("4854J", mode).get_type(), OnePair);
+    assert_eq!(Hand::new("ATT9A", mode).get_type(), TwoPair);
+    assert_eq!(Hand::new("TJTT3", mode).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("666JJ", mode).get_type(), FullHouse);
+    assert_eq!(Hand::new("AAAA4", mode).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQQQQ", mode).get_type(), FiveOfAKind);
 }
 
 #[test]
-fn test_hand_type_and_bid() {
+fn test_hand_type_and_bid_part01() {
+    use Mode::*;
     use Type::*;
-    let test = Hand::new("A2T63 1234");
+    let test = Hand::new("A2T63 1234", Part01);
     assert_eq!(test.get_type(), HighCard);
     assert_eq!(test.get_bid(), 1234u32);
 }
@@ -161,7 +178,7 @@ impl PartialOrd for Hand {
 }
 
 #[test]
-fn test_sorting() {
+fn test_sorting_part01() {
     let mut hands = vec![
         Hand::new("32T3K"),
         Hand::new("T55J5"),
@@ -181,28 +198,41 @@ fn test_sorting() {
     assert_eq!(hands, expected_order);
 }
 
-fn part01(input: &Path) -> Number {
+type Hands = Vec<Hand>;
+
+fn parse_hands(input: &Path, mode: Mode) -> Hands {
     let reader = get_reader(&input);
     let mut hands = Vec::new();
     for line in reader.lines() {
         let line = line.unwrap();
-        let hand = Hand::new(&line);
+        let hand = Hand::new(&line, mode);
         hands.push(hand);
     }
+    hands
+}
 
+fn rank_hands(hands: &mut Hands) -> () {
     hands.sort();
+}
 
-    let total_winnings = hands
+fn get_total_winnings(ranked_hands: &Hands) -> Number {
+    ranked_hands
         .iter()
         .enumerate()
         .map(|(c, h)| ((c + 1) as Number) * h.get_bid())
-        .sum();
-
-    total_winnings
+        .sum()
 }
 
-fn part02(_input: &Path) -> Number {
-    0 // TODO implement me
+fn part01(input: &Path) -> Number {
+    let mut hands = parse_hands(input, Mode::Part01);
+    rank_hands(&mut hands);
+    get_total_winnings(&hands)
+}
+
+fn part02(input: &Path) -> Number {
+    let mut hands = parse_hands(input, Mode::Part02);
+    rank_hands(&mut hands);
+    get_total_winnings(&hands)
 }
 
 fn main() {
