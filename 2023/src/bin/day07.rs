@@ -40,7 +40,7 @@ enum Part {
 }
 
 trait Hand: PartialOrd + Ord {
-    fn new(line: &str, part: Part) -> Self {
+    fn new(line: &str, part: Part) -> Box<Self> {
         let parts: Vec<&str> = line.split(' ').collect();
 
         let bid = if parts.len() == 1 {
@@ -53,8 +53,8 @@ trait Hand: PartialOrd + Ord {
         };
 
         match part {
-            Part::One => HandPart01::new(parts[0], bid),
-            Part::Two => HandPart02::new(parts[0], bid),
+            Part::One => Box::new(HandPart01::new(parts[0], bid)),
+            Part::Two => Box::new(HandPart02::new(parts[0], bid)),
             _ => unreachable!("what kind of hand '{}' should be?", part),
         }
     }
@@ -64,7 +64,9 @@ trait Hand: PartialOrd + Ord {
     fn get_bid(&self) -> Number {
         self.bid
     }
+}
 
+impl<T: Hand> Ord for T {
     fn cmp(&self, other: &Self) -> Ordering {
         use Ordering::*;
         let order = if self.get_type() == other.get_type() {
@@ -87,7 +89,9 @@ trait Hand: PartialOrd + Ord {
         };
         order
     }
+}
 
+impl<T: Hand> PartialOrd for T {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
