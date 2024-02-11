@@ -39,16 +39,15 @@ enum Part {
     Two,
 }
 
-trait Hand: PartialOrd + Ord {
-    fn get_type(&self) -> Type;
-
-    fn get_bid(&self) -> Number {
-        self.bid
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Hand {
+    cards: [u8; 5],
+    bid: Number,
+    rules: Part,
 }
 
-impl<T: Hand> Ord for T {
-    fn cmp(&self, other: &T) -> Ordering {
+impl Ord for Hand {
+    fn cmp(&self, other: &Hand) -> Ordering {
         use Ordering::*;
         let order = if self.get_type() == other.get_type() {
             let card_pairs = std::iter::zip(self.cards, other.cards);
@@ -72,41 +71,23 @@ impl<T: Hand> Ord for T {
     }
 }
 
-impl<T: Hand> PartialOrd for T {
-    fn partial_cmp(&self, other: &T) -> Option<Ordering> {
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Hand) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
-struct HandPart01 {
-    cards: [u8; 5],
-    bid: Number,
-}
-
-fn preparse(line: &str) -> (&str, Number) {
-    let parts: Vec<&str> = line.split(' ').collect();
-
-    let bid = if parts.len() == 1 {
-        0 // if the bid isn't specified we just assume it's 0
-    } else {
-        match parts[1].parse::<Number>() {
-            Ok(bid) => bid,
-            Err(_) => 0,
-        }
-    };
-
-    (parts[0], bid)
-}
-
-impl HandPart01 {
-    pub fn new(line: &str) -> Self {
-        let (cards_src, bid) = preparse(line);
+impl Hand {
+    pub fn new(line: &str, rules: Part) -> Self {
+        let (cards_src, bid) = Self::parse(line);
         let cards: [u8; 5] = cards_src
             .chars()
             .map(|c| match c {
                 'T' => 10u8,
-                'J' => 11u8,
+                'J' => match rules {
+                    Part::One => 11u8,
+                    Part::Two => 1u8,
+                },
                 'Q' => 12u8,
                 'K' => 13u8,
                 'A' => 14u8,
@@ -115,12 +96,21 @@ impl HandPart01 {
             .collect::<Vec<u8>>()
             .try_into()
             .unwrap();
-        Self { cards, bid }
+        Self { cards, bid, rules }
     }
-}
 
-impl Hand for HandPart01 {
-    fn get_type(&self) -> Type {
+    pub fn get_type(&self) -> Type {
+        match self.rules {
+            Part::One => self.get_type_part01(),
+            Part::Two => self.get_type_part02(),
+        }
+    }
+
+    pub fn get_bid(&self) -> Number {
+        self.bid
+    }
+
+    fn get_type_part01(&self) -> Type {
         use Type::*;
         let mut count_of_cards: HashMap<u8, u8> = HashMap::new();
         for card in &self.cards {
@@ -154,36 +144,8 @@ impl Hand for HandPart01 {
 
         hand_type
     }
-}
 
-#[derive(Debug, PartialEq, Eq)]
-struct HandPart02 {
-    cards: [u8; 5],
-    bid: Number,
-}
-
-impl HandPart02 {
-    pub fn new(line: &str) -> Self {
-        let (cards_src, bid) = preparse(line);
-        let cards: [u8; 5] = cards_src
-            .chars()
-            .map(|c| match c {
-                'J' => 1u8,
-                'T' => 10u8,
-                'Q' => 12u8,
-                'K' => 13u8,
-                'A' => 14u8,
-                num => num.to_digit(10).unwrap() as u8,
-            })
-            .collect::<Vec<u8>>()
-            .try_into()
-            .unwrap();
-        Self { cards, bid }
-    }
-}
-
-impl Hand for HandPart02 {
-    fn get_type(&self) -> Type {
+    fn get_type_part02(&self) -> Type {
         use Type::*;
         let mut count_of_cards: HashMap<u8, u8> = HashMap::new();
         for card in &self.cards {
@@ -252,6 +214,21 @@ impl Hand for HandPart02 {
 
         hand_type
     }
+
+    fn parse(line: &str) -> (&str, Number) {
+        let parts: Vec<&str> = line.split(' ').collect();
+
+        let bid = if parts.len() == 1 {
+            0 // if the bid isn't specified we just assume it's 0
+        } else {
+            match parts[1].parse::<Number>() {
+                Ok(bid) => bid,
+                Err(_) => 0,
+            }
+        };
+
+        (parts[0], bid)
+    }
 }
 
 #[test]
@@ -276,73 +253,119 @@ fn test_hand_type_and_bid_part01() {
 }
 
 #[test]
-fn test_sorting_part01() {
+fn test_hand_type_kinds_part02() {
+    let part = Part::Two;
+    use Type::*;
+    assert_eq!(Hand::new("A2T63", part).get_type(), HighCard);
+    assert_eq!(Hand::new("4854J", part).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("ATT9A", part).get_type(), TwoPair);
+    assert_eq!(Hand::new("KTT9J", part).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("TJTT3", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("JJ244", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("666JJ", part).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQQJA", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("234AJ", part).get_type(), OnePair);
+}
+
+#[test]
+fn test_ranking_part01() {
     let part = Part::One;
-    let mut hands = vec![
+    let unranked = vec![
         Hand::new("32T3K", part),
         Hand::new("T55J5", part),
         Hand::new("KK677", part),
         Hand::new("KTJJT", part),
         Hand::new("QQQJA", part),
     ];
-    hands.sort();
-    let expected_order = vec![
+    let mut hands = Hands::from_slice(&unranked[..]);
+
+    hands.rank();
+
+    let ranked = vec![
         Hand::new("32T3K", part),
         Hand::new("KTJJT", part),
         Hand::new("KK677", part),
         Hand::new("T55J5", part),
         Hand::new("QQQJA", part),
     ];
+    let expected_order = Hands::from_slice(&ranked[..]);
 
     assert_eq!(hands, expected_order);
 }
 
 #[test]
-fn test_hand_type_kinds_part02() {
+fn test_ranking_part02() {
     let part = Part::Two;
-    use Type::*;
-    assert_eq!(Hand::new("A2T63", part).get_type(), HighCard);
-    assert_eq!(Hand::new("4854J", part).get_type(), OnePair);
-    assert_eq!(Hand::new("ATT9A", part).get_type(), TwoPair);
-    assert_eq!(Hand::new("TJTT3", part).get_type(), ThreeOfAKind);
-    assert_eq!(Hand::new("666JJ", part).get_type(), FullHouse);
-    assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
+    let unranked = vec![
+        Hand::new("32T3K", part),
+        Hand::new("T55J5", part),
+        Hand::new("KK677", part),
+        Hand::new("KTJJT", part),
+        Hand::new("QQQJA", part),
+    ];
+    let mut hands = Hands::from_slice(&unranked[..]);
+
+    hands.rank();
+
+    let ranked = vec![
+        Hand::new("32T3K", part),
+        Hand::new("KK677", part),
+        Hand::new("T55J5", part),
+        Hand::new("QQQJA", part),
+        Hand::new("KTJJT", part),
+    ];
+    let expected_order = Hands::from_slice(&ranked[..]);
+
+    assert_eq!(hands, expected_order);
 }
 
-fn parse_hands(input: &Path, part: Part) -> Vec<Box<dyn Hand>> {
-    let reader = get_reader(&input);
-    let mut hands = Vec::new();
-    for line in reader.lines() {
-        let line = line.unwrap();
-        let hand = Hand::new(&line, part);
-        hands.push(hand);
+#[derive(Debug, PartialEq, Eq)]
+struct Hands {
+    hands: Vec<Hand>,
+}
+
+impl Hands {
+    pub fn from_file(input: &Path, part: Part) -> Self {
+        let reader = get_reader(&input);
+        let mut hands = Vec::new();
+        for line in reader.lines() {
+            let line = line.unwrap();
+            let hand = Hand::new(&line, part);
+            hands.push(hand);
+        }
+        Self { hands }
     }
-    hands
-}
 
-fn rank_hands(hands: &mut Vec<Box<dyn Hand>>) -> () {
-    hands.sort();
-}
+    pub fn from_slice(hands: &[Hand]) -> Self {
+        let hands = hands.to_vec();
+        Self { hands }
+    }
 
-fn get_total_winnings(ranked_hands: &Vec<Box<dyn Hand>>) -> Number {
-    ranked_hands
-        .iter()
-        .enumerate()
-        .map(|(c, h)| ((c + 1) as Number) * h.get_bid())
-        .sum()
+    pub fn rank(&mut self) {
+        self.hands.sort();
+    }
+
+    pub fn get_total_winnings(&self) -> Number {
+        self.hands
+            .iter()
+            .enumerate()
+            .map(|(c, h)| ((c + 1) as Number) * h.get_bid())
+            .sum()
+    }
 }
 
 fn part01(input: &Path) -> Number {
-    let mut hands = parse_hands(input, Part::One);
-    rank_hands(&mut hands);
-    get_total_winnings(&hands)
+    let mut hands = Hands::from_file(input, Part::One);
+    hands.rank();
+    hands.get_total_winnings()
 }
 
 fn part02(input: &Path) -> Number {
-    let mut hands = parse_hands(input, Part::Two);
-    rank_hands(&mut hands);
-    get_total_winnings(&hands)
+    let mut hands = Hands::from_file(input, Part::Two);
+    hands.rank();
+    hands.get_total_winnings()
 }
 
 fn main() {
