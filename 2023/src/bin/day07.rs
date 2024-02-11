@@ -40,25 +40,6 @@ enum Part {
 }
 
 trait Hand: PartialOrd + Ord {
-    fn new(line: &str, part: Part) -> Box<Self> {
-        let parts: Vec<&str> = line.split(' ').collect();
-
-        let bid = if parts.len() == 1 {
-            0 // if the bid isn't specified we just assume it's 0
-        } else {
-            match parts[1].parse::<Number>() {
-                Ok(bid) => bid,
-                Err(_) => 0,
-            }
-        };
-
-        match part {
-            Part::One => Box::new(HandPart01::new(parts[0], bid)),
-            Part::Two => Box::new(HandPart02::new(parts[0], bid)),
-            _ => unreachable!("what kind of hand '{}' should be?", part),
-        }
-    }
-
     fn get_type(&self) -> Type;
 
     fn get_bid(&self) -> Number {
@@ -67,20 +48,20 @@ trait Hand: PartialOrd + Ord {
 }
 
 impl<T: Hand> Ord for T {
-    fn cmp(&self, other: &Self) -> Ordering {
+    fn cmp(&self, other: &T) -> Ordering {
         use Ordering::*;
         let order = if self.get_type() == other.get_type() {
             let card_pairs = std::iter::zip(self.cards, other.cards);
-            let mut o: Option<Ordering> = None;
+            let mut card_based_order: Option<Ordering> = None;
             for (c1, c2) in card_pairs {
                 if c1 == c2 {
                     continue;
                 } else {
-                    o = Some(c1.cmp(&c2));
+                    card_based_order = Some(c1.cmp(&c2));
                     break;
                 }
             }
-            match o {
+            match card_based_order {
                 Some(ord) => ord,
                 None => Equal,
             }
@@ -92,7 +73,7 @@ impl<T: Hand> Ord for T {
 }
 
 impl<T: Hand> PartialOrd for T {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &T) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
@@ -103,8 +84,24 @@ struct HandPart01 {
     bid: Number,
 }
 
+fn preparse(line: &str) -> (&str, Number) {
+    let parts: Vec<&str> = line.split(' ').collect();
+
+    let bid = if parts.len() == 1 {
+        0 // if the bid isn't specified we just assume it's 0
+    } else {
+        match parts[1].parse::<Number>() {
+            Ok(bid) => bid,
+            Err(_) => 0,
+        }
+    };
+
+    (parts[0], bid)
+}
+
 impl HandPart01 {
-    pub fn new(cards_src: &str, bid: Number) -> Self {
+    pub fn new(line: &str) -> Self {
+        let (cards_src, bid) = preparse(line);
         let cards: [u8; 5] = cards_src
             .chars()
             .map(|c| match c {
@@ -166,7 +163,8 @@ struct HandPart02 {
 }
 
 impl HandPart02 {
-    pub fn new(cards_src: &str, bid: Number) -> Self {
+    pub fn new(line: &str) -> Self {
+        let (cards_src, bid) = preparse(line);
         let cards: [u8; 5] = cards_src
             .chars()
             .map(|c| match c {
