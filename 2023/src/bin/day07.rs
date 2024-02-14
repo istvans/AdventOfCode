@@ -232,6 +232,22 @@ impl Hand {
 }
 
 #[test]
+fn test_hand_type_and_bid_part01() {
+    use Type::*;
+    let test = Hand::new("A2T63 1234", Part::One);
+    assert_eq!(test.get_type(), HighCard);
+    assert_eq!(test.get_bid(), 1234u32);
+}
+
+#[test]
+fn test_hand_type_and_bid_part02() {
+    use Type::*;
+    let test = Hand::new("A2T63 1234", Part::Two);
+    assert_eq!(test.get_type(), HighCard);
+    assert_eq!(test.get_bid(), 1234u32);
+}
+
+#[test]
 fn test_hand_type_kinds_part01() {
     let part = Part::One;
     use Type::*;
@@ -242,14 +258,6 @@ fn test_hand_type_kinds_part01() {
     assert_eq!(Hand::new("666JJ", part).get_type(), FullHouse);
     assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
     assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
-}
-
-#[test]
-fn test_hand_type_and_bid_part01() {
-    use Type::*;
-    let test = Hand::new("A2T63 1234", Part::One);
-    assert_eq!(test.get_type(), HighCard);
-    assert_eq!(test.get_bid(), 1234u32);
 }
 
 #[test]
