@@ -21,11 +21,13 @@ enum Type {
 fn test_type_ordering() {
     use Type::*;
     assert!(FiveOfAKind > FourOfAKind);
+    assert!(FullHouse < FourOfAKind);
     assert!(FullHouse > HighCard);
     assert!(TwoPair < ThreeOfAKind);
     assert!(TwoPair <= FourOfAKind);
     assert!(FourOfAKind >= FourOfAKind);
     assert!(FiveOfAKind >= FullHouse);
+    assert!(HighCard < OnePair);
     assert_eq!(OnePair, OnePair);
     assert_eq!(ThreeOfAKind, ThreeOfAKind);
     assert_eq!(FullHouse, FullHouse);
@@ -110,8 +112,7 @@ impl Hand {
         self.bid
     }
 
-    fn get_type_part01(&self) -> Type {
-        use Type::*;
+    fn get_count_of_cards(&self) -> HashMap<u8, u8> {
         let mut count_of_cards: HashMap<u8, u8> = HashMap::new();
         for card in &self.cards {
             count_of_cards
@@ -119,6 +120,13 @@ impl Hand {
                 .and_modify(|c| *c += 1)
                 .or_insert(1);
         }
+        count_of_cards
+    }
+
+    fn get_type_part01(&self) -> Type {
+        use Type::*;
+
+        let count_of_cards = self.get_count_of_cards();
 
         let max_count = *(count_of_cards.values().max().unwrap());
         let hand_type = if max_count == 5 {
@@ -147,31 +155,34 @@ impl Hand {
 
     fn get_type_part02(&self) -> Type {
         use Type::*;
-        let mut count_of_cards: HashMap<u8, u8> = HashMap::new();
-        for card in &self.cards {
-            count_of_cards
-                .entry(*card)
-                .and_modify(|c| *c += 1)
-                .or_insert(1);
-        }
+
+        let count_of_cards = self.get_count_of_cards();
 
         let max_count = *(count_of_cards.values().max().unwrap());
         let num_jokers = count_of_cards.get(&1);
         let hand_type = if max_count == 5 {
             FiveOfAKind
         } else if max_count == 4 {
-            if num_jokers.is_some_and(|n| *n == 1) {
+            if num_jokers.is_some_and(|n| *n == 4) {
+                FiveOfAKind
+            } else if num_jokers.is_some_and(|n| *n == 1) {
                 FiveOfAKind
             } else {
                 FourOfAKind
             }
         } else if max_count == 3 {
-            if num_jokers.is_some_and(|n| *n < 3) {
+            if num_jokers.is_some_and(|n| *n <= 3) {
                 let num_jokers = *num_jokers.unwrap();
                 if num_jokers == 1 {
                     FourOfAKind
                 } else if num_jokers == 2 {
                     FiveOfAKind
+                } else if num_jokers == 3 {
+                    if count_of_cards.values().any(|&c| c == 2) {
+                        FiveOfAKind
+                    } else {
+                        FourOfAKind
+                    }
                 } else {
                     unreachable!("joker counting error");
                 }
@@ -232,6 +243,23 @@ impl Hand {
 }
 
 #[test]
+fn test_get_count_of_cards_single() {
+    let test = Hand::new("A2T63", Part::Two);
+    let expected_count_of_cards =
+        HashMap::from([(2u8, 1u8), (14u8, 1u8), (10u8, 1u8), (3u8, 1u8), (6u8, 1u8)]);
+    let actual_count_of_cards = test.get_count_of_cards();
+    assert_eq!(actual_count_of_cards, expected_count_of_cards);
+}
+
+#[test]
+fn test_get_count_of_cards_multi() {
+    let test = Hand::new("Q2JJQ", Part::Two);
+    let expected_count_of_cards = HashMap::from([(1u8, 2u8), (12u8, 2u8), (2u8, 1u8)]);
+    let actual_count_of_cards = test.get_count_of_cards();
+    assert_eq!(actual_count_of_cards, expected_count_of_cards);
+}
+
+#[test]
 fn test_hand_type_and_bid_part01() {
     use Type::*;
     let test = Hand::new("A2T63 1234", Part::One);
@@ -270,10 +298,13 @@ fn test_hand_type_kinds_part02() {
     assert_eq!(Hand::new("KTT9J", part).get_type(), ThreeOfAKind);
     assert_eq!(Hand::new("TJTT3", part).get_type(), FourOfAKind);
     assert_eq!(Hand::new("JJ244", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("6JJJJ", part).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("66JJJ", part).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("666JJ", part).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
     assert_eq!(Hand::new("QQQJA", part).get_type(), FourOfAKind);
     assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("AAJAA", part).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("234AJ", part).get_type(), OnePair);
 }
 
