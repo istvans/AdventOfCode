@@ -289,23 +289,62 @@ fn test_hand_type_kinds_part01() {
 }
 
 #[test]
-fn test_hand_type_kinds_part02() {
+fn test_hand_type_kinds_part02_high_card() {
     let part = Part::Two;
     use Type::*;
     assert_eq!(Hand::new("A2T63", part).get_type(), HighCard);
-    assert_eq!(Hand::new("4854J", part).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("Q4K65", part).get_type(), HighCard);
+}
+
+#[test]
+fn test_hand_type_kinds_part02_one_pair() {
+    let part = Part::Two;
+    use Type::*;
+    assert_eq!(Hand::new("234AJ", part).get_type(), OnePair);
+    assert_eq!(Hand::new("2344A", part).get_type(), OnePair);
+}
+
+#[test]
+fn test_hand_type_kinds_part02_two_pair() {
+    let part = Part::Two;
+    use Type::*;
     assert_eq!(Hand::new("ATT9A", part).get_type(), TwoPair);
+}
+
+#[test]
+fn test_hand_type_kinds_part02_three_of_a_kind() {
+    let part = Part::Two;
+    use Type::*;
+    assert_eq!(Hand::new("48544", part).get_type(), ThreeOfAKind);
     assert_eq!(Hand::new("KTT9J", part).get_type(), ThreeOfAKind);
+}
+
+#[test]
+fn test_hand_type_kinds_part02_full_house() {
+    let part = Part::Two;
+    use Type::*;
+    assert_eq!(Hand::new("T3TT3", part).get_type(), FullHouse);
+}
+
+#[test]
+fn test_hand_type_kinds_part02_four_of_a_kind() {
+    let part = Part::Two;
+    use Type::*;
     assert_eq!(Hand::new("TJTT3", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("JJ244", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQJJA", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("JJ2J4", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
+}
+
+#[test]
+fn test_hand_type_kinds_part02_five_of_a_kind() {
+    let part = Part::Two;
+    use Type::*;
     assert_eq!(Hand::new("6JJJJ", part).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("66JJJ", part).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("666JJ", part).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("QQQJA", part).get_type(), FourOfAKind);
     assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("AAJAA", part).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("234AJ", part).get_type(), OnePair);
 }
 
 #[test]
