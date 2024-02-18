@@ -313,23 +313,6 @@ fn test_type_ordering() {
     assert_eq!(FullHouse, FullHouse);
 }
 
-#[test]
-fn test_get_count_of_cards_single() {
-    let test = Hand::new("A2T63", Rules::Part02);
-    let expected_count_of_cards =
-        HashMap::from([(2u8, 1u8), (14u8, 1u8), (10u8, 1u8), (3u8, 1u8), (6u8, 1u8)]);
-    let actual_count_of_cards = test.get_count_of_cards();
-    assert_eq!(actual_count_of_cards, expected_count_of_cards);
-}
-
-#[test]
-fn test_get_count_of_cards_multi() {
-    let test = Hand::new("Q2JJQ", Rules::Part02);
-    let expected_count_of_cards = HashMap::from([(1u8, 2u8), (12u8, 2u8), (2u8, 1u8)]);
-    let actual_count_of_cards = test.get_count_of_cards();
-    assert_eq!(actual_count_of_cards, expected_count_of_cards);
-}
-
 // Part 1 tests
 
 #[test]
@@ -380,6 +363,23 @@ fn test_ranking_part01() {
 }
 
 // Part 2 tests
+
+#[test]
+fn test_get_count_of_cards_single_part02() {
+    let test = Hand::new("A2T63", Rules::Part02);
+    let expected_count_of_cards =
+        HashMap::from([(2u8, 1u8), (14u8, 1u8), (10u8, 1u8), (3u8, 1u8), (6u8, 1u8)]);
+    let actual_count_of_cards = test.get_count_of_cards();
+    assert_eq!(actual_count_of_cards, expected_count_of_cards);
+}
+
+#[test]
+fn test_get_count_of_cards_multi_part02() {
+    let test = Hand::new("Q2JJQ", Rules::Part02);
+    let expected_count_of_cards = HashMap::from([(1u8, 2u8), (12u8, 2u8), (2u8, 1u8)]);
+    let actual_count_of_cards = test.get_count_of_cards();
+    assert_eq!(actual_count_of_cards, expected_count_of_cards);
+}
 
 #[test]
 fn test_hand_type_and_bid_part02() {
@@ -472,4 +472,20 @@ fn test_ranking_part02() {
     let expected_order = Hands::from_slice(&ranked[..]);
 
     assert_eq!(hands, expected_order);
+}
+
+#[test]
+fn test_individual_hand_cmp_part02() {
+    let rules = Rules::Part02;
+    assert!(Hand::new("A2T63", rules) < Hand::new("4854J", rules));
+    assert!(Hand::new("TJTT3", rules) > Hand::new("69664", rules));
+    assert!(Hand::new("66266", rules) > Hand::new("46626", rules));
+}
+
+#[test]
+fn test_joker_hand_cmp() {
+    let rules = Rules::Part02;
+    assert!(Hand::new("23J45", rules) < Hand::new("23245", rules));
+    assert!(Hand::new("234J5", rules) > Hand::new("23245", rules));
+    assert!(Hand::new("TJ9QQ", rules) < Hand::new("Q59QQ", rules));
 }
