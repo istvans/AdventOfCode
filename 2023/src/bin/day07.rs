@@ -20,16 +20,16 @@ enum Type {
 type Number = u32;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Part {
-    One,
-    Two,
+enum Rules {
+    Part01,
+    Part02,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Hand {
     cards: [u8; 5],
     bid: Number,
-    rules: Part,
+    rules: Rules,
 }
 
 impl Ord for Hand {
@@ -64,15 +64,15 @@ impl PartialOrd for Hand {
 }
 
 impl Hand {
-    pub fn new(line: &str, rules: Part) -> Self {
+    pub fn new(line: &str, rules: Rules) -> Self {
         let (cards_src, bid) = Self::parse(line);
         let cards: [u8; 5] = cards_src
             .chars()
             .map(|c| match c {
                 'T' => 10u8,
                 'J' => match rules {
-                    Part::One => 11u8,
-                    Part::Two => 1u8,
+                    Rules::Part01 => 11u8,
+                    Rules::Part02 => 1u8,
                 },
                 'Q' => 12u8,
                 'K' => 13u8,
@@ -87,8 +87,8 @@ impl Hand {
 
     pub fn get_type(&self) -> Type {
         match self.rules {
-            Part::One => self.get_type_part01(),
-            Part::Two => self.get_type_part02(),
+            Rules::Part01 => self.get_type_part01(),
+            Rules::Part02 => self.get_type_part02(),
         }
     }
 
@@ -232,17 +232,18 @@ struct Hands {
 }
 
 impl Hands {
-    pub fn from_file(input: &Path, part: Part) -> Self {
+    pub fn from_file(input: &Path, rules: Rules) -> Self {
         let reader = get_reader(&input);
         let mut hands = Vec::new();
         for line in reader.lines() {
             let line = line.unwrap();
-            let hand = Hand::new(&line, part);
+            let hand = Hand::new(&line, rules);
             hands.push(hand);
         }
         Self { hands }
     }
 
+    #[allow(dead_code)]
     pub fn from_slice(hands: &[Hand]) -> Self {
         let hands = hands.to_vec();
         Self { hands }
@@ -262,13 +263,13 @@ impl Hands {
 }
 
 fn part01(input: &Path) -> Number {
-    let mut hands = Hands::from_file(input, Part::One);
+    let mut hands = Hands::from_file(input, Rules::Part01);
     hands.rank();
     hands.get_total_winnings()
 }
 
 fn part02(input: &Path) -> Number {
-    let mut hands = Hands::from_file(input, Part::Two);
+    let mut hands = Hands::from_file(input, Rules::Part02);
     hands.rank();
     hands.get_total_winnings()
 }
@@ -314,7 +315,7 @@ fn test_type_ordering() {
 
 #[test]
 fn test_get_count_of_cards_single() {
-    let test = Hand::new("A2T63", Part::Two);
+    let test = Hand::new("A2T63", Rules::Part02);
     let expected_count_of_cards =
         HashMap::from([(2u8, 1u8), (14u8, 1u8), (10u8, 1u8), (3u8, 1u8), (6u8, 1u8)]);
     let actual_count_of_cards = test.get_count_of_cards();
@@ -323,7 +324,7 @@ fn test_get_count_of_cards_single() {
 
 #[test]
 fn test_get_count_of_cards_multi() {
-    let test = Hand::new("Q2JJQ", Part::Two);
+    let test = Hand::new("Q2JJQ", Rules::Part02);
     let expected_count_of_cards = HashMap::from([(1u8, 2u8), (12u8, 2u8), (2u8, 1u8)]);
     let actual_count_of_cards = test.get_count_of_cards();
     assert_eq!(actual_count_of_cards, expected_count_of_cards);
@@ -334,44 +335,44 @@ fn test_get_count_of_cards_multi() {
 #[test]
 fn test_hand_type_and_bid_part01() {
     use Type::*;
-    let test = Hand::new("A2T63 1234", Part::One);
+    let test = Hand::new("A2T63 1234", Rules::Part01);
     assert_eq!(test.get_type(), HighCard);
     assert_eq!(test.get_bid(), 1234u32);
 }
 
 #[test]
 fn test_hand_type_kinds_part01() {
-    let part = Part::One;
+    let rules = Rules::Part01;
     use Type::*;
-    assert_eq!(Hand::new("A2T63", part).get_type(), HighCard);
-    assert_eq!(Hand::new("4854J", part).get_type(), OnePair);
-    assert_eq!(Hand::new("ATT9A", part).get_type(), TwoPair);
-    assert_eq!(Hand::new("TJTT3", part).get_type(), ThreeOfAKind);
-    assert_eq!(Hand::new("666JJ", part).get_type(), FullHouse);
-    assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("A2T63", rules).get_type(), HighCard);
+    assert_eq!(Hand::new("4854J", rules).get_type(), OnePair);
+    assert_eq!(Hand::new("ATT9A", rules).get_type(), TwoPair);
+    assert_eq!(Hand::new("TJTT3", rules).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("666JJ", rules).get_type(), FullHouse);
+    assert_eq!(Hand::new("AAAA4", rules).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQQQQ", rules).get_type(), FiveOfAKind);
 }
 
 #[test]
 fn test_ranking_part01() {
-    let part = Part::One;
+    let rules = Rules::Part01;
     let unranked = vec![
-        Hand::new("32T3K", part),
-        Hand::new("T55J5", part),
-        Hand::new("KK677", part),
-        Hand::new("KTJJT", part),
-        Hand::new("QQQJA", part),
+        Hand::new("32T3K", rules),
+        Hand::new("T55J5", rules),
+        Hand::new("KK677", rules),
+        Hand::new("KTJJT", rules),
+        Hand::new("QQQJA", rules),
     ];
     let mut hands = Hands::from_slice(&unranked[..]);
 
     hands.rank();
 
     let ranked = vec![
-        Hand::new("32T3K", part),
-        Hand::new("KTJJT", part),
-        Hand::new("KK677", part),
-        Hand::new("T55J5", part),
-        Hand::new("QQQJA", part),
+        Hand::new("32T3K", rules),
+        Hand::new("KTJJT", rules),
+        Hand::new("KK677", rules),
+        Hand::new("T55J5", rules),
+        Hand::new("QQQJA", rules),
     ];
     let expected_order = Hands::from_slice(&ranked[..]);
 
@@ -383,90 +384,90 @@ fn test_ranking_part01() {
 #[test]
 fn test_hand_type_and_bid_part02() {
     use Type::*;
-    let test = Hand::new("A2T63 1234", Part::Two);
+    let test = Hand::new("A2T63 1234", Rules::Part02);
     assert_eq!(test.get_type(), HighCard);
     assert_eq!(test.get_bid(), 1234u32);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_high_card() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("A2T63", part).get_type(), HighCard);
-    assert_eq!(Hand::new("Q4K65", part).get_type(), HighCard);
+    assert_eq!(Hand::new("A2T63", rules).get_type(), HighCard);
+    assert_eq!(Hand::new("Q4K65", rules).get_type(), HighCard);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_one_pair() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("234AJ", part).get_type(), OnePair);
-    assert_eq!(Hand::new("2344A", part).get_type(), OnePair);
+    assert_eq!(Hand::new("234AJ", rules).get_type(), OnePair);
+    assert_eq!(Hand::new("2344A", rules).get_type(), OnePair);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_two_pair() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("ATT9A", part).get_type(), TwoPair);
+    assert_eq!(Hand::new("ATT9A", rules).get_type(), TwoPair);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_three_of_a_kind() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("48544", part).get_type(), ThreeOfAKind);
-    assert_eq!(Hand::new("KTT9J", part).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("48544", rules).get_type(), ThreeOfAKind);
+    assert_eq!(Hand::new("KTT9J", rules).get_type(), ThreeOfAKind);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_full_house() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("T3TT3", part).get_type(), FullHouse);
+    assert_eq!(Hand::new("T3TT3", rules).get_type(), FullHouse);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_four_of_a_kind() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("TJTT3", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("QQJJA", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("JJ2J4", part).get_type(), FourOfAKind);
-    assert_eq!(Hand::new("AAAA4", part).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("TJTT3", rules).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("QQJJA", rules).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("JJ2J4", rules).get_type(), FourOfAKind);
+    assert_eq!(Hand::new("AAAA4", rules).get_type(), FourOfAKind);
 }
 
 #[test]
 fn test_hand_type_kinds_part02_five_of_a_kind() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     use Type::*;
-    assert_eq!(Hand::new("6JJJJ", part).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("66JJJ", part).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("666JJ", part).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("QQQQQ", part).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("AAJAA", part).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("6JJJJ", rules).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("66JJJ", rules).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("666JJ", rules).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("QQQQQ", rules).get_type(), FiveOfAKind);
+    assert_eq!(Hand::new("AAJAA", rules).get_type(), FiveOfAKind);
 }
 
 #[test]
 fn test_ranking_part02() {
-    let part = Part::Two;
+    let rules = Rules::Part02;
     let unranked = vec![
-        Hand::new("32T3K", part),
-        Hand::new("T55J5", part),
-        Hand::new("KK677", part),
-        Hand::new("KTJJT", part),
-        Hand::new("QQQJA", part),
+        Hand::new("32T3K", rules),
+        Hand::new("T55J5", rules),
+        Hand::new("KK677", rules),
+        Hand::new("KTJJT", rules),
+        Hand::new("QQQJA", rules),
     ];
     let mut hands = Hands::from_slice(&unranked[..]);
 
     hands.rank();
 
     let ranked = vec![
-        Hand::new("32T3K", part),
-        Hand::new("KK677", part),
-        Hand::new("T55J5", part),
-        Hand::new("QQQJA", part),
-        Hand::new("KTJJT", part),
+        Hand::new("32T3K", rules),
+        Hand::new("KK677", rules),
+        Hand::new("T55J5", rules),
+        Hand::new("QQQJA", rules),
+        Hand::new("KTJJT", rules),
     ];
     let expected_order = Hands::from_slice(&ranked[..]);
 
