@@ -30,6 +30,7 @@ struct Hand {
     cards: [u8; 5],
     bid: Number,
     rules: Rules,
+    rank: Number,
 }
 
 impl Ord for Hand {
@@ -65,6 +66,11 @@ impl PartialOrd for Hand {
 
 impl Hand {
     pub fn new(line: &str, rules: Rules) -> Self {
+        let no_rank = 0;
+        Hand::new_with_rank(line, rules, no_rank)
+    }
+
+    pub fn new_with_rank(line: &str, rules: Rules, rank: Number) -> Self {
         let (cards_src, bid) = Self::parse(line);
         let cards: [u8; 5] = cards_src
             .chars()
@@ -82,7 +88,12 @@ impl Hand {
             .collect::<Vec<u8>>()
             .try_into()
             .unwrap();
-        Self { cards, bid, rules }
+        Self {
+            cards,
+            bid,
+            rules,
+            rank,
+        }
     }
 
     pub fn get_type(&self) -> Type {
@@ -249,29 +260,35 @@ impl Hands {
         Self { hands }
     }
 
-    pub fn rank(&mut self) {
-        self.hands.sort();
+    pub fn get_ranked(&self) -> Vec<Hand> {
+        let mut hands = self.hands.clone();
+        hands.sort();
+        for (i, hand) in hands.iter_mut().enumerate() {
+            hand.rank = (i as Number) + 1;
+        }
+        hands
     }
 
-    pub fn get_total_winnings(&self) -> Number {
-        self.hands
+    pub fn get_total_winnings(&self, ranked_hands: &Vec<Hand>) -> Number {
+        ranked_hands
             .iter()
-            .enumerate()
-            .map(|(c, h)| ((c + 1) as Number) * h.get_bid())
+            .map(|hand| hand.rank * hand.get_bid())
             .sum()
     }
 }
 
+fn solve(input: &Path, rules: Rules) -> Number {
+    let hands = Hands::from_file(input, rules);
+    let ranked_hands = hands.get_ranked();
+    hands.get_total_winnings(&ranked_hands)
+}
+
 fn part01(input: &Path) -> Number {
-    let mut hands = Hands::from_file(input, Rules::Part01);
-    hands.rank();
-    hands.get_total_winnings()
+    solve(input, Rules::Part01)
 }
 
 fn part02(input: &Path) -> Number {
-    let mut hands = Hands::from_file(input, Rules::Part02);
-    hands.rank();
-    hands.get_total_winnings()
+    solve(input, Rules::Part02)
 }
 
 fn main() {
@@ -288,14 +305,18 @@ fn main() {
     let answer = part02(&input);
     println!(
         "Using the new joker rule, find the rank of every hand in your set. \
-         What are the new total winnings? {}",
+         What are the new total winnings?\n{}",
         answer
     );
 }
 
-// ==================== Tests ====================
+//=============================================================================
+//================================= Tests =====================================
+//=============================================================================
 
+//=============================================================================
 // Part-independent tests
+//=============================================================================
 
 #[test]
 fn test_type_ordering() {
@@ -313,7 +334,9 @@ fn test_type_ordering() {
     assert_eq!(FullHouse, FullHouse);
 }
 
+//=============================================================================
 // Part 1 tests
+//=============================================================================
 
 #[test]
 fn test_hand_type_and_bid_part01() {
@@ -339,6 +362,13 @@ fn test_hand_type_kinds_part01() {
 #[test]
 fn test_ranking_part01() {
     let rules = Rules::Part01;
+
+    let expected_order: Vec<Hand> = vec!["32T3K", "KTJJT", "KK677", "T55J5", "QQQJA"]
+        .iter()
+        .enumerate()
+        .map(|(i, line)| Hand::new_with_rank(line, rules, (i + 1) as Number))
+        .collect();
+
     let unranked = vec![
         Hand::new("32T3K", rules),
         Hand::new("T55J5", rules),
@@ -346,23 +376,37 @@ fn test_ranking_part01() {
         Hand::new("KTJJT", rules),
         Hand::new("QQQJA", rules),
     ];
-    let mut hands = Hands::from_slice(&unranked[..]);
+    let ranked = Hands::from_slice(&unranked[..]).get_ranked();
 
-    hands.rank();
-
-    let ranked = vec![
-        Hand::new("32T3K", rules),
-        Hand::new("KTJJT", rules),
-        Hand::new("KK677", rules),
-        Hand::new("T55J5", rules),
-        Hand::new("QQQJA", rules),
-    ];
-    let expected_order = Hands::from_slice(&ranked[..]);
-
-    assert_eq!(hands, expected_order);
+    assert_eq!(ranked, expected_order);
 }
 
+#[test]
+fn test_example_part01() {
+    // source: https://adventofcode.com/2023/day/7
+    let expected_answer = 6440;
+
+    let input = Path::new("./inputs/day07.example");
+    let answer = part01(&input);
+
+    assert_eq!(answer, expected_answer);
+}
+
+/// SPOILER ALERT: This test contains the secret solution for this part!!!
+#[test]
+fn test_solution_part01() {
+    let input = Path::new("./inputs/day07");
+
+    let expected_answer = 248559379;
+
+    let answer = part01(&input);
+
+    assert_eq!(answer, expected_answer);
+}
+
+//=============================================================================
 // Part 2 tests
+//=============================================================================
 
 #[test]
 fn test_get_count_of_cards_single_part02() {
@@ -441,16 +485,23 @@ fn test_hand_type_kinds_part02_four_of_a_kind() {
 fn test_hand_type_kinds_part02_five_of_a_kind() {
     let rules = Rules::Part02;
     use Type::*;
+    assert_eq!(Hand::new("AAJAA", rules).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("6JJJJ", rules).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("66JJJ", rules).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("666JJ", rules).get_type(), FiveOfAKind);
     assert_eq!(Hand::new("QQQQQ", rules).get_type(), FiveOfAKind);
-    assert_eq!(Hand::new("AAJAA", rules).get_type(), FiveOfAKind);
 }
 
 #[test]
 fn test_ranking_part02() {
     let rules = Rules::Part02;
+
+    let expected_order: Vec<Hand> = vec!["32T3K", "KK677", "T55J5", "QQQJA", "KTJJT"]
+        .iter()
+        .enumerate()
+        .map(|(i, line)| Hand::new_with_rank(line, rules, (i + 1) as Number))
+        .collect();
+
     let unranked = vec![
         Hand::new("32T3K", rules),
         Hand::new("T55J5", rules),
@@ -458,20 +509,9 @@ fn test_ranking_part02() {
         Hand::new("KTJJT", rules),
         Hand::new("QQQJA", rules),
     ];
-    let mut hands = Hands::from_slice(&unranked[..]);
+    let ranked = Hands::from_slice(&unranked[..]).get_ranked();
 
-    hands.rank();
-
-    let ranked = vec![
-        Hand::new("32T3K", rules),
-        Hand::new("KK677", rules),
-        Hand::new("T55J5", rules),
-        Hand::new("QQQJA", rules),
-        Hand::new("KTJJT", rules),
-    ];
-    let expected_order = Hands::from_slice(&ranked[..]);
-
-    assert_eq!(hands, expected_order);
+    assert_eq!(ranked, expected_order);
 }
 
 #[test]
@@ -488,4 +528,15 @@ fn test_joker_hand_cmp() {
     assert!(Hand::new("23J45", rules) < Hand::new("23245", rules));
     assert!(Hand::new("234J5", rules) > Hand::new("23245", rules));
     assert!(Hand::new("TJ9QQ", rules) < Hand::new("Q59QQ", rules));
+}
+
+#[test]
+fn test_example_part02() {
+    // source: https://adventofcode.com/2023/day/7
+    let expected_answer = 5905;
+
+    let input = Path::new("./inputs/day07.example");
+    let answer = part02(&input);
+
+    assert_eq!(answer, expected_answer);
 }
