@@ -1,6 +1,8 @@
 /// 2023 Day 7
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::fmt;
+use std::fs::File;
 use std::io::BufRead;
 use std::path::Path;
 
@@ -105,6 +107,22 @@ impl Hand {
 
     pub fn get_bid(&self) -> Number {
         self.bid
+    }
+
+    pub fn get_cards_as_str(&self) -> String {
+        let mut result = String::new();
+        for card_num in self.cards {
+            let card_char = match card_num {
+                10u8 => 'T',
+                1u8 | 11u8 => 'J',
+                12u8 => 'Q',
+                13u8 => 'K',
+                14u8 => 'A',
+                num => (num + 48u8) as char,
+            };
+            result.push(card_char);
+        }
+        result
     }
 
     fn get_count_of_cards(&self) -> HashMap<u8, u8> {
@@ -237,6 +255,18 @@ impl Hand {
     }
 }
 
+impl fmt::Display for Hand {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            fmt,
+            "{} {} {}",
+            self.rank,
+            self.get_cards_as_str(),
+            self.get_bid()
+        )
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 struct Hands {
     hands: Vec<Hand>,
@@ -275,11 +305,29 @@ impl Hands {
             .map(|hand| hand.rank * hand.get_bid())
             .sum()
     }
+
+    pub fn write_to_file(&self, output: &Path) -> std::io::Result<()> {
+        let mut out = File::create(output)?;
+        for hand in self.hands {
+            writeln!(out, "{}", hand)?;
+        }
+        Ok(())
+    }
 }
 
 fn solve(input: &Path, rules: Rules) -> Number {
     let hands = Hands::from_file(input, rules);
     let ranked_hands = hands.get_ranked();
+
+    // debug-only
+    if rules == Rules::Part02 {
+        let output = Path::new("./ranked_part02.txt");
+        println!("Writing the ranked hands to {:?}", output);
+        Hands::from_slice(&ranked_hands)
+            .write_to_file(output)
+            .unwrap();
+    }
+
     hands.get_total_winnings(&ranked_hands)
 }
 
@@ -539,4 +587,13 @@ fn test_example_part02() {
     let answer = part02(&input);
 
     assert_eq!(answer, expected_answer);
+}
+
+#[test]
+fn test_get_cards_as_str_part02() {
+    let rules = Rules::Part02;
+    assert_eq!(Hand::new("23J45", rules).get_cards_as_str(), "23J45");
+    assert_eq!(Hand::new("JAJ6Q", rules).get_cards_as_str(), "JAJ6Q");
+    assert_eq!(Hand::new("KAJJA", rules).get_cards_as_str(), "KAJJA");
+    assert_eq!(Hand::new("T9876", rules).get_cards_as_str(), "T9876");
 }
