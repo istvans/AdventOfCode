@@ -58,8 +58,5 @@ fn main() {
 
     print_part01_header();
     let answer = part01(&input);
-    println!(
-        "Find the rank of every hand in your set. What are the total winnings? {}",
-        answer
-    );
+    println!("How many steps are required to reach ZZZ? {}", answer);
 }
