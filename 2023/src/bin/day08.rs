@@ -7,7 +7,7 @@ use std::path::Path;
 
 type NumSteps = u32;
 
-fn part01(input: &Path) -> NumSteps {
+fn parse(input: &Path) -> (Vec<usize>, HashMap<String, [String; 2]>) {
     let reader = get_reader(&input);
 
     let mut directions = Vec::new();
@@ -39,6 +39,12 @@ fn part01(input: &Path) -> NumSteps {
         }
     }
 
+    (directions, map)
+}
+
+fn part01(input: &Path) -> NumSteps {
+    let (directions, map) = parse(&input);
+
     let goal = "ZZZ";
     let mut i = String::from("AAA");
     let mut step = 0;
@@ -53,10 +59,19 @@ fn part01(input: &Path) -> NumSteps {
     step
 }
 
+fn part02(input: &Path) -> NumSteps {
+    let (directions, map) = parse(&input);
+    0
+}
+
 fn main() {
     let input = Path::new("./inputs/day08");
 
     print_part01_header();
     let answer = part01(&input);
     println!("Starting at AAA, follow the left/right instructions. How many steps are required to reach ZZZ? {}", answer);
+
+    print_part02_header();
+    let answer = part02(&input);
+    println!("Simultaneously start on every node that ends with A. How many steps does it take before you're only on nodes that end with Z? {}", answer);
 }
