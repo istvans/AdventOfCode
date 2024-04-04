@@ -61,7 +61,47 @@ fn part01(input: &Path) -> NumSteps {
 
 fn part02(input: &Path) -> NumSteps {
     let (directions, map) = parse(&input);
-    0
+
+    let mut positions: Vec<String> = map
+        .keys()
+        .filter(|node| node.ends_with("A"))
+        .cloned()
+        .collect();
+
+    // debug-only
+    /*println!("found {} start node(s)", positions.len());
+    positions
+        .iter()
+        .for_each(|node| println!("start node: {}", node)); */
+
+    let mut step = 0;
+    let mut dir_index = 0;
+    let mut arrived = false;
+    while !arrived {
+        let dir = directions[dir_index];
+
+        positions
+            .iter_mut()
+            .for_each(|node| *node = map[node][dir].clone());
+
+        dir_index += 1;
+        dir_index %= directions.len();
+        step += 1;
+
+        arrived = positions.iter().all(|node| node.ends_with("Z"));
+
+        /*println!(
+            "Step {} {} {}\n--------------------------",
+            step, dir, arrived
+        );
+        positions.iter().for_each(|node| println!("    {}", node));*/
+
+        /*        if step == 5 {
+            break;
+        }*/
+    }
+
+    step
 }
 
 fn main() {
