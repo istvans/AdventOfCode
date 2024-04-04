@@ -58,5 +58,5 @@ fn main() {
 
     print_part01_header();
     let answer = part01(&input);
-    println!("How many steps are required to reach ZZZ? {}", answer);
+    println!("Starting at AAA, follow the left/right instructions. How many steps are required to reach ZZZ? {}", answer);
 }
