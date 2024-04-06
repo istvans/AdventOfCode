@@ -3,11 +3,13 @@ use raoc_2023::{get_reader, print_part01_header, print_part02_header};
 use regex::Regex;
 use std::collections::HashMap;
 use std::io::BufRead;
+use std::io::Write;
 use std::path::Path;
 
 type NumSteps = u32;
+type Directions = Vec<usize>;
 
-fn parse(input: &Path) -> (Vec<usize>, HashMap<String, [String; 2]>) {
+fn parse(input: &Path) -> (Directions, HashMap<String, [String; 2]>) {
     let reader = get_reader(&input);
 
     let mut directions = Vec::new();
@@ -22,9 +24,9 @@ fn parse(input: &Path) -> (Vec<usize>, HashMap<String, [String; 2]>) {
                 .map(|d| match d {
                     'L' => 0,
                     'R' => 1,
-                    _ => 2,
+                    _ => unreachable!(),
                 })
-                .collect::<Vec<usize>>()
+                .collect::<Directions>()
                 .try_into()
                 .unwrap();
             parse_dir = false;
@@ -72,7 +74,7 @@ fn part02(input: &Path) -> NumSteps {
     /*println!("found {} start node(s)", positions.len());
     positions
         .iter()
-        .for_each(|node| println!("start node: {}", node)); */
+        .for_each(|node| println!("start node: {}", node));*/
 
     let mut step = 0;
     let mut dir_index = 0;
@@ -80,23 +82,39 @@ fn part02(input: &Path) -> NumSteps {
     while !arrived {
         let dir = directions[dir_index];
 
-        positions
-            .iter_mut()
-            .for_each(|node| *node = map[node][dir].clone());
+        /*positions
+        .iter_mut()
+        .for_each(|node| *node = map[node][dir].clone());*/
+        for node in &mut positions {
+            *node = map[node][dir].clone();
+        }
 
         dir_index += 1;
         dir_index %= directions.len();
         step += 1;
 
-        arrived = positions.iter().all(|node| node.ends_with("Z"));
+        print!("\r{}    ", step);
+        let _ = std::io::stdout().flush();
+
+        // arrived = positions.iter().all(|node| node.ends_with("Z"));
 
         /*println!(
             "Step {} {} {}\n--------------------------",
             step, dir, arrived
-        );
-        positions.iter().for_each(|node| println!("    {}", node));*/
+        );*/
 
-        /*        if step == 5 {
+        arrived = true;
+        for node in &positions {
+            // println!("    '{}'", node);
+            if !node.ends_with("Z") {
+                arrived = false;
+                break;
+            }
+        }
+
+        /*positions.iter().for_each(|node| println!("    {}", node));*/
+
+        /*if step == 1000000 {
             break;
         }*/
     }
@@ -111,7 +129,10 @@ fn main() {
     let answer = part01(&input);
     println!("Starting at AAA, follow the left/right instructions. How many steps are required to reach ZZZ? {}", answer);
 
+    // let input = Path::new("./inputs/day08.example");
+
     print_part02_header();
+    println!("Simultaneously start on every node that ends with A. How many steps does it take before you're only on nodes that end with Z?");
     let answer = part02(&input);
-    println!("Simultaneously start on every node that ends with A. How many steps does it take before you're only on nodes that end with Z? {}", answer);
+    println!("{}", answer);
 }
