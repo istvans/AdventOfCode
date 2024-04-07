@@ -40,6 +40,8 @@ fn parse(input: &Path) -> (Directions, HashMap<String, [String; 2]>) {
             }
         }
     }
+    println!("number of directions: {}", directions.len());
+    println!("number of nodes: {}", map.keys().len());
 
     (directions, map)
 }
