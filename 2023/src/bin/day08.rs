@@ -66,17 +66,17 @@ fn part01(input: &Path) -> NumSteps {
 fn part02(input: &Path) -> NumSteps {
     let (directions, map) = parse(&input);
 
-    let mut positions: Vec<String> = map
+    let mut positions: Vec<&str> = map
         .keys()
         .filter(|node| node.ends_with("A"))
-        .cloned()
+        .map(|node| node.as_str())
         .collect();
 
     // debug-only
-    /*println!("found {} start node(s)", positions.len());
+    println!("found {} start node(s)", positions.len());
     positions
         .iter()
-        .for_each(|node| println!("start node: {}", node));*/
+        .for_each(|node| println!("start node: {}", node));
 
     let mut step = 0;
     let mut dir_index = 0;
@@ -84,35 +84,42 @@ fn part02(input: &Path) -> NumSteps {
     while !arrived {
         let dir = directions[dir_index];
 
-        /*positions
-        .iter_mut()
-        .for_each(|node| *node = map[node][dir].clone());*/
         for node in &mut positions {
-            *node = map[node][dir].clone();
+            *node = map[*node][dir].as_str();
         }
 
         dir_index += 1;
         dir_index %= directions.len();
         step += 1;
 
-        print!("\r{}    ", step);
-        let _ = std::io::stdout().flush();
+        /*print!("\r{}    ", step);
+        let _ = std::io::stdout().flush();*/
 
-        // arrived = positions.iter().all(|node| node.ends_with("Z"));
+        arrived = positions.iter().all(|node| node.ends_with("Z"));
 
-        /*println!(
+        /* println!(
             "Step {} {} {}\n--------------------------",
             step, dir, arrived
         );*/
 
-        arrived = true;
+        /*arrived = true;
+        let mut count = 0;
         for node in &positions {
             // println!("    '{}'", node);
-            if !node.ends_with("Z") {
-                arrived = false;
-                break;
-            }
-        }
+            if node.ends_with("Z") {
+                count += 1;
+                if count > 3 {
+                    println!("**** {} {} '{}' '{:?}'", step, count, node, positions);
+                }
+                if count == 5 {
+                    arrived = true;
+                    break;
+                }
+            } /* else {
+                  arrived = false;
+                  break;
+              }*/
+        }*/
 
         /*positions.iter().for_each(|node| println!("    {}", node));*/
 
