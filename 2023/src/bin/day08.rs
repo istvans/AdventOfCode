@@ -92,10 +92,10 @@ fn part02(input: &Path) -> NumSteps {
         dir_index %= directions.len();
         step += 1;
 
+        arrived = positions.iter().all(|node| node.ends_with("Z"));
+
         /*print!("\r{}    ", step);
         let _ = std::io::stdout().flush();*/
-
-        arrived = positions.iter().all(|node| node.ends_with("Z"));
 
         /* println!(
             "Step {} {} {}\n--------------------------",
