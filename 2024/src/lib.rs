@@ -1,4 +1,4 @@
-/// !!! Duplicated by the 2024 project !!!
+/// !!! Duplicated from the 2023 project !!!
 /// TODO remove the duplication by publishing your very first crate?!
 /// Common tools to solve the puzzles.
 use std::fs::File;
