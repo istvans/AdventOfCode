@@ -1,6 +1,8 @@
 # 2023 Rust Solutions
 
-Example:
+## Quickstart
 
     cargo run --bin day01
+    OR
+    make D=01
 

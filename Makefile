@@ -1,19 +1,20 @@
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MAKEFILE_DIR := $(dir $(MAKEFILE_PATH))
 
-ifdef YEAR
+ifdef Y
+    YEAR = $Y
     YEAR_DIR = ${MAKEFILE_DIR}/${YEAR}
 else
-    $(error the YEAR is undefined)
+    $(error Y=year is undefined)
 endif
 
-ifdef DAY
-    DAY_DIR = ${YEAR_DIR}/Day${DAY}
+ifdef D
+    DAY = $D
+    DAY_DIR = ${YEAR_DIR}/${DAY}
 else
-    $(error the DAY is undefined)
+    $(error D=day is undefined)
 endif
 
 .PHONY: $(DAY_DIR)
-
 $(DAY_DIR):
-	$(MAKE) -C $@
+	$(MAKE) -C ${YEAR_DIR}
