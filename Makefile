@@ -18,3 +18,8 @@ endif
 .PHONY: $(DAY_DIR)
 $(DAY_DIR):
 	$(MAKE) -C ${YEAR_DIR}
+
+.PHONY: test
+test:
+	$(MAKE) -C ${YEAR_DIR} test
+

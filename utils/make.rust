@@ -1,0 +1,13 @@
+ifdef D
+    DAY = $D
+else
+    $(error D=day is undefined)
+endif
+
+.PHONY: $(DAY)
+$(DAY):
+	cargo run --bin day${DAY}
+
+.PHONY: test
+test:
+	cargo test --bin day${DAY}
