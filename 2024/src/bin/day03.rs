@@ -57,42 +57,66 @@ fn calculate_line_part02(line: &str) -> u32 {
         .collect::<Vec<usize>>();
     // At the beginning of the program, mul instructions are enabled.
     dos.insert(0, 0);
-    let mut donts = line
+    let donts = line
         .match_indices("don't()")
         .map(|x| x.0)
         .collect::<Vec<usize>>();
-    // Make our algo work with an endstop.
-    donts.push(line.len());
 
-    println!("{:?}", &line[0..line.len()]);
+    println!(
+        "{:?}\nlen:{:?}\ndos:{:?}\ndonts:{:?}",
+        &line[0..line.len()],
+        line.len(),
+        dos,
+        donts
+    );
 
     let mut result = 0;
     if donts.is_empty() {
         result += multiply(&line);
     } else {
+        let mut intervals: Vec<(usize, usize)> = Vec::new();
         let mut donts_index = 0;
-        let mut dos_index = 0;
-        while dos_index < dos.len() {
-            let mut do_index = dos[dos_index];
-            let dont_index = donts[donts_index];
-            println!("do:{:?} dont:{:?}", do_index, dont_index);
-
-            if do_index < dont_index {
-                result += multiply(&line[do_index..dont_index]);
-
-                while do_index <= dont_index {
-                    dos_index += 1;
-                    if dos_index >= dos.len() {
-                        break;
-                    }
-                    do_index = dos[dos_index];
-                    println!("after mul => do:{:?} dont:{:?}", do_index, dont_index);
+        let mut dont_index = donts[donts_index];
+        for do_index in dos {
+            println!("BW do:{:?} don't:{:?}", do_index, dont_index);
+            // don't() ... do() ... don't()
+            while dont_index <= do_index {
+                if donts_index == (donts.len() - 1) {
+                    break;
                 }
                 donts_index += 1;
-                donts_index %= donts.len();
-            } else {
-                dos_index += 1;
+                dont_index = donts[donts_index];
             }
+            println!("AW do:{:?} don't:{:?}", do_index, dont_index);
+
+            // do() ... mul() ...
+            if do_index > dont_index {
+                intervals.push((do_index, line.len()));
+                break;
+            }
+
+            if intervals.is_empty() {
+                intervals.push((do_index, dont_index));
+            } else {
+                let (last_do_index, last_dont_index) = intervals.last().unwrap();
+                println!(
+                    "last_do:{:?} last_don't:{:?}",
+                    *last_do_index, *last_dont_index
+                );
+                if (do_index >= *last_do_index) && (do_index <= *last_dont_index) {
+                    continue;
+                } else {
+                    intervals.push((do_index, dont_index));
+                }
+            }
+        }
+
+        for i in &intervals {
+            println!("{:?}", i);
+        }
+
+        for (from, to) in intervals {
+            result += multiply(&line[from..to]);
         }
     }
 
@@ -157,8 +181,8 @@ fn test_dont_in_the_middle() {
 #[test]
 fn test_dont_do_dont() {
     let result = calculate_line_part02(
-        "xmul(1,2)somegarbage^don't()_mul(5,6)+mul(32,64](mul(11,8)undo()?mul(3,2))\
-        someothergarbagedon't()foobarmul(6, 4)donnodo()xyzmul(4, 5)",
+        "mul(1,2)somegarbage^don't()_mul(5,6)+mul(32,64](mul(11,8)undo()?mul(3,2))\
+        someothergarbagedon't()foobarmul(6, 4)donnodo()xyzmul(4,5)",
     );
     assert_eq!(result, (1 * 2) + (3 * 2) + (4 * 5));
 }
