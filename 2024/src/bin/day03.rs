@@ -149,6 +149,21 @@ fn test_dont_all() {
 }
 
 #[test]
+fn test_dont_in_the_middle() {
+    let result = calculate_line_part02("xyzmul(2,3)kdskdon't()skdsmul(4,5)");
+    assert_eq!(result, 2 * 3);
+}
+
+#[test]
+fn test_dont_do_dont() {
+    let result = calculate_line_part02(
+        "xmul(1,2)somegarbage^don't()_mul(5,6)+mul(32,64](mul(11,8)undo()?mul(3,2))\
+        someothergarbagedon't()foobarmul(6, 4)donnodo()xyzmul(4, 5)",
+    );
+    assert_eq!(result, (1 * 2) + (3 * 2) + (4 * 5));
+}
+
+#[test]
 fn test_example() {
     let result = calculate_line_part02(
         "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
