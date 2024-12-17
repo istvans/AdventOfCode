@@ -92,11 +92,23 @@ fn calculate_line_part02(line: &str) -> u32 {
             // do() ... mul() ...
             if do_index > dont_index {
                 intervals.push((do_index, line.len()));
+                println!(
+                    "INSERT {:?} {:?}\nPROCESS: {:?}",
+                    do_index,
+                    line.len(),
+                    &line[do_index..line.len()],
+                );
                 break;
             }
 
             if intervals.is_empty() {
                 intervals.push((do_index, dont_index));
+                println!(
+                    "INSERT {:?} {:?}\nPROCESS: {:?}",
+                    do_index,
+                    dont_index,
+                    &line[do_index..dont_index],
+                );
             } else {
                 let (last_do_index, last_dont_index) = intervals.last().unwrap();
                 println!(
@@ -107,6 +119,12 @@ fn calculate_line_part02(line: &str) -> u32 {
                     continue;
                 } else {
                     intervals.push((do_index, dont_index));
+                    println!(
+                        "INSERT {:?} {:?}\nPROCESS: {:?}",
+                        do_index,
+                        dont_index,
+                        &line[do_index..dont_index],
+                    );
                 }
             }
         }
@@ -207,5 +225,12 @@ fn test_multi_dont() {
 fn test_multi_do() {
     let result =
         calculate_line_part02("do()xmul(2,4)&mul[3,7]do()_mul(3,2)+don't()mul(32,64](mul(11,8)");
+    assert_eq!(result, (2 * 4) + (3 * 2));
+}
+
+#[test]
+fn test_dont_then_immediate_do() {
+    let result =
+        calculate_line_part02("xmul(2,4)&mul[3,7]don't()do()_mul(3,2)+don't()mul(32,64](mul(11,8)");
     assert_eq!(result, (2 * 4) + (3 * 2));
 }
