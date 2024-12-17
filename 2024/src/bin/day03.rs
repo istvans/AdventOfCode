@@ -178,3 +178,10 @@ fn test_multi_dont() {
     );
     assert_eq!(result, (2 * 4) + (8 * 5));
 }
+
+#[test]
+fn test_multi_do() {
+    let result =
+        calculate_line_part02("do()xmul(2,4)&mul[3,7]do()_mul(3,2)+don't()mul(32,64](mul(11,8)");
+    assert_eq!(result, (2 * 4) + (3 * 2));
+}
