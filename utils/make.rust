@@ -6,8 +6,8 @@ endif
 
 .PHONY: $(DAY)
 $(DAY):
-	cargo run --bin day${DAY}
+	cargo run --bin day${DAY} ${P}
 
 .PHONY: test
 test:
-	cargo test --bin day${DAY}
+	cargo test --bin day${DAY} ${P}
